@@ -1,4 +1,5 @@
 # Directories
+build/
 .vs/
 bin/
 bin-int/
