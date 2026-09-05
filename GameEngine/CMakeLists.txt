@@ -8,8 +8,9 @@ file(GLOB_RECURSE GAMEENGINE_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.h"
 )
 
-target_sources(GameEngine PRIVATE
-    ${GAMEENGINE_SOURCES}
+target_sources(GameEngine 
+    PRIVATE
+        ${GAMEENGINE_SOURCES}
 )
 
 target_include_directories(GameEngine
@@ -23,9 +24,15 @@ target_compile_definitions(GameEngine
         GAMEENGINE_BUILD_DLL
 )
 
-target_compile_definitions(GameEngine PRIVATE
-    $<$<CONFIG:Debug>:GAMEENGINE_DEBUG>
-    $<$<CONFIG:Release>:GAMEENGINE_RELEASE>
+target_precompile_headers(GameEngine
+    PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/pch.h"
+)
+
+target_compile_definitions(GameEngine 
+    PRIVATE
+        $<$<CONFIG:Debug>:GAMEENGINE_DEBUG>
+        $<$<CONFIG:Release>:GAMEENGINE_RELEASE>
 )
 
 target_link_libraries(GameEngine
