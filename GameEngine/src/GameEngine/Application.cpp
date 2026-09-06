@@ -1,13 +1,13 @@
 #include "Application.h"
-#include "GameEngine/Core.h"
-#include "GameEngine/Events/Event.h"
-#include "GameEngine/Events/ApplicationEvent.h"
-#include "GameEngine/Log.h"
 
 namespace GameEngine
 {
 	Application::Application()
 	{
+		m_Window = std::unique_ptr<Window>(Window::Create());
+		//m_Window->SetEventCallback([](Event& e) {
+		//	LOG_TRACE(e.ToString());
+		//	});
 	}
 
 	Application::~Application()
@@ -16,12 +16,9 @@ namespace GameEngine
 
 	void Application::Run()
 	{
-		WindowResizeEvent resizeEvent(1280, 720);
-		LOG_TRACE(resizeEvent.ToString());
-
-		while (true)
+		while (m_Running)
 		{
-			// Update and render the application
+			m_Window->OnUpdate();
 		}
 	}
 }
