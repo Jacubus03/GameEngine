@@ -56,7 +56,7 @@ namespace GameEngine
 		EVENT_CLASS_CATEGORY(EventCategoryMouse | EventCategoryInput)
 	protected:
 		MouseButtonEvent(int button)
-			: mButton(button) { }
+			: m_Button(button) { }
 
 		int m_Button;
 	};
