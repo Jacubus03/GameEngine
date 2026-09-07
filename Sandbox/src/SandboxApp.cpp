@@ -1,11 +1,31 @@
 #include <GameEngine.h>
 
+class ExampleLayer : public GameEngine::Layer
+{
+public:
+	ExampleLayer()
+		: Layer("Example")
+	{
+
+	}
+
+	void OnUpdate() override
+	{
+		LOG_INFO("ExampleLayer::Update");
+	}
+
+	void OnEvent(GameEngine::Event& event) override
+	{
+		LOG_INFO("ExampleLayer::OnEvent: {0}", event.ToString());
+	}
+};
+
 class Sandbox : public GameEngine::Application
 {
 	public:
 		Sandbox()
 		{
-			// Initialize your sandbox application here
+			PushLayer(new ExampleLayer());
 		}
 		~Sandbox()
 		{
