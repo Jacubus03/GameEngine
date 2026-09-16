@@ -1,3 +1,3 @@
 @echo off
-cmake --build build --config Debug
+cmake --build out/build --config Debug
 pause

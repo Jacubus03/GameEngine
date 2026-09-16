@@ -11,7 +11,7 @@ public:
 
 	void OnUpdate() override
 	{
-		LOG_INFO("ExampleLayer::Update");
+		//LOG_INFO("ExampleLayer::Update");
 	}
 
 	void OnEvent(GameEngine::Event& event) override

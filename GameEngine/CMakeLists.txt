@@ -2,7 +2,26 @@
 add_subdirectory(vendor/spdlog)
 add_subdirectory(vendor/glfw)
 
+add_library(glad STATIC
+    vendor/glad/src/glad.c
+)
+
+target_include_directories(glad
+    PUBLIC
+        vendor/glad/include
+)
+
 add_library(GameEngine SHARED)
+
+if(MSVC)
+    target_compile_options(GameEngine PRIVATE
+        $<$<CONFIG:Debug>:/Zi>
+    )
+
+    target_link_options(GameEngine PRIVATE
+        $<$<CONFIG:Debug>:/DEBUG>
+    )
+endif()
 
 file(GLOB_RECURSE GAMEENGINE_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
@@ -39,4 +58,5 @@ target_link_libraries(GameEngine
     PUBLIC
         spdlog::spdlog
         glfw
+        glad
 )
