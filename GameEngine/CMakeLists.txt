@@ -11,6 +11,26 @@ target_include_directories(glad
         vendor/glad/include
 )
 
+add_library(imgui STATIC
+    vendor/imgui/imgui.cpp
+    vendor/imgui/imgui_draw.cpp
+    vendor/imgui/imgui_tables.cpp
+    vendor/imgui/imgui_widgets.cpp
+
+    vendor/imgui/backends/imgui_impl_glfw.cpp
+    vendor/imgui/backends/imgui_impl_opengl3.cpp
+)
+
+target_include_directories(imgui
+    PUBLIC
+        vendor/imgui
+)
+
+target_link_libraries(imgui
+    PUBLIC
+        glfw
+)
+
 add_library(GameEngine SHARED)
 
 if(MSVC)
@@ -59,4 +79,5 @@ target_link_libraries(GameEngine
         spdlog::spdlog
         glfw
         glad
+        imgui
 )
