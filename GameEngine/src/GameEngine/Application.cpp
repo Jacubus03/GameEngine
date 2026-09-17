@@ -6,6 +6,7 @@ namespace GameEngine
 	{
 		m_Window = std::unique_ptr<Window>(Window::Create());
 		m_Window->SetEventCallback(std::bind(&Application::OnEvent, this, std::placeholders::_1));
+		PushOverlay(new ImGuiLayer(m_Window.get()));
 	}
 
 	Application::~Application()
@@ -42,6 +43,8 @@ namespace GameEngine
 	{
 		while (m_Running)
 		{
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 			for (Layer* layer : m_LayerStack)
 				layer->OnUpdate();
 

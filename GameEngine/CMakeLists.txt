@@ -13,6 +13,7 @@ target_include_directories(glad
 
 add_library(imgui STATIC
     vendor/imgui/imgui.cpp
+    vendor/imgui/imgui_demo.cpp
     vendor/imgui/imgui_draw.cpp
     vendor/imgui/imgui_tables.cpp
     vendor/imgui/imgui_widgets.cpp
@@ -80,4 +81,5 @@ target_link_libraries(GameEngine
         glfw
         glad
         imgui
+        opengl32
 )

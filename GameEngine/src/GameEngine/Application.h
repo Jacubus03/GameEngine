@@ -6,6 +6,8 @@
 #include "GameEngine/Events/Event.h"
 #include "GameEngine/Events/ApplicationEvent.h"
 #include "GameEngine/Log.h"
+#include "GameEngine/ImGui/ImGuiLayer.h"
+#include <glad/glad.h>
 
 namespace GameEngine
 {
