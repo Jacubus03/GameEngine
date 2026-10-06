@@ -1,7 +1,9 @@
 # Build spdlog before creating GameEngine
 add_subdirectory(vendor/spdlog)
 add_subdirectory(vendor/glfw)
+add_subdirectory(vendor/glm)
 
+# GLAD
 add_library(glad STATIC
     vendor/glad/src/glad.c
 )
@@ -11,6 +13,7 @@ target_include_directories(glad
         vendor/glad/include
 )
 
+# ImGui
 add_library(imgui STATIC
     vendor/imgui/imgui.cpp
     vendor/imgui/imgui_demo.cpp
@@ -32,6 +35,7 @@ target_link_libraries(imgui
         glfw
 )
 
+# GameEngine
 add_library(GameEngine SHARED)
 
 if(MSVC)
@@ -84,5 +88,6 @@ target_link_libraries(GameEngine
         glfw
         glad
         imgui
+        glm
         opengl32
 )
