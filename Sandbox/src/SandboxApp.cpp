@@ -11,12 +11,12 @@ public:
 
 	void OnUpdate() override
 	{
-		//LOG_INFO("ExampleLayer::Update");
+		//GE_LOG_INFO("ExampleLayer::Update");
 	}
 
 	void OnEvent(GameEngine::Event& event) override
 	{
-		LOG_INFO("ExampleLayer::OnEvent: {0}", event.ToString());
+		//GE_LOG_INFO("ExampleLayer::OnEvent: {0}", event.ToString());
 	}
 };
 
