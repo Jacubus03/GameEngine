@@ -66,8 +66,11 @@ target_include_directories(GameEngine
 
 target_compile_definitions(GameEngine
     PRIVATE
-        GAMEENGINE_PLATFORM_WINDOWS
         GAMEENGINE_BUILD_DLL
+
+        $<$<PLATFORM_ID:Windows>:GAMEENGINE_PLATFORM_WINDOWS>
+        $<$<PLATFORM_ID:Linux>:GAMEENGINE_PLATFORM_LINUX>
+        $<$<PLATFORM_ID:Darwin>:GAMEENGINE_PLATFORM_MACOS>
 
         $<$<CONFIG:Debug>:GAMEENGINE_DEBUG>
         $<$<CONFIG:Debug>:GAMEENGINE_ENABLE_ASSERTS>
