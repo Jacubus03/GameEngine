@@ -5,6 +5,8 @@ struct GLFWwindow;
 
 namespace GameEngine
 {
+	class GraphicsContext;
+
 	class WindowsWindow : public Window
 	{
 	public:
@@ -34,7 +36,8 @@ namespace GameEngine
 			bool VSync;
 			EventCallbackFn EventCallback;
 		};
-		GLFWwindow* m_Window;
 		WindowData m_Data;
+		GLFWwindow* m_Window;
+		GraphicsContext* m_Context;
 	};
 }
