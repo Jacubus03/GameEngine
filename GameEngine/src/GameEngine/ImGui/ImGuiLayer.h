@@ -14,9 +14,12 @@ namespace GameEngine
         ImGuiLayer(Window* window);
         ~ImGuiLayer();
 
-        void OnAttach() override;
-        void OnDetach() override;
-        void OnUpdate() override;
+        virtual void OnAttach() override;
+        virtual void OnDetach() override;
+        virtual void OnImGuiRender() override;
+		void Begin();
+		void End();
+
         void OnEvent(Event& event) override;
     private:
         bool OnMouseButtonPressedEvent(MouseButtonPressedEvent& e);
