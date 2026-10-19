@@ -1,6 +1,7 @@
 #pragma once
 
 // For use by GameEngine applications
+#include "GameEngine/Core.h"
 
 #include "GameEngine/Application.h"
 #include "GameEngine/Layer.h"

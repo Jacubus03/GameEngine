@@ -122,29 +122,4 @@ namespace GameEngine
     {
 		glUseProgram(0);
     }
-
-    void Shader::SetInt(const std::string& name, int value)
-    {
-        // Implementation for setting integer uniform
-    }
-
-    void Shader::SetFloat(const std::string& name, float value)
-    {
-        // Implementation for setting float uniform
-    }
-
-    void Shader::SetVec2(const std::string& name, const float* value)
-    {
-        // Implementation for setting vec2 uniform
-    }
-
-    void Shader::SetVec3(const std::string& name, const float* value)
-    {
-        // Implementation for setting vec3 uniform
-    }
-
-    void Shader::SetVec4(const std::string& name, const float* value)
-    {
-        // Implementation for setting vec4 uniform
-    }
 }
