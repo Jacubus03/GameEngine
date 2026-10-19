@@ -91,3 +91,9 @@ target_link_libraries(GameEngine
         glm
         opengl32
 )
+
+add_custom_command(TARGET GameEngine POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "$<TARGET_FILE:GameEngine>"
+        "$<TARGET_FILE_DIR:Sandbox>"
+)

@@ -7,6 +7,7 @@
 #include "GameEngine/Events/ApplicationEvent.h"
 #include "GameEngine/Log.h"
 #include "GameEngine/ImGui/ImGuiLayer.h"
+#include "GameEngine/Renderer/Shader.h"
 #include <glad/glad.h>
 
 namespace GameEngine
@@ -34,6 +35,9 @@ namespace GameEngine
 		ImGuiLayer* m_ImGuiLayer;
 		bool m_Running = true;
 		LayerStack m_LayerStack;
+
+		unsigned int m_VertexArray, m_VertexBuffer, m_IndexBuffer;
+		std::unique_ptr<Shader> m_Shader;
 
 		static Application* s_Instance;
 	};

@@ -9,12 +9,6 @@ target_sources(Sandbox
         ${SANDBOX_SOURCES}
 )
 
-add_custom_command(TARGET Sandbox POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        $<TARGET_FILE:GameEngine>
-        $<TARGET_FILE_DIR:Sandbox>
-)
-
 target_compile_definitions(Sandbox
     PRIVATE
         GAMEENGINE_PLATFORM_WINDOWS
