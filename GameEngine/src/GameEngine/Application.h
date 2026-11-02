@@ -10,7 +10,7 @@
 #include "GameEngine/Renderer/Shader.h"
 #include "GameEngine/Renderer/Buffer.h"
 #include "GameEngine/Renderer/VertexArray.h"
-#include <glad/glad.h>
+#include "GameEngine/Renderer/Renderer.h"
 
 namespace GameEngine
 {
