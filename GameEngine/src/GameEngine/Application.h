@@ -11,6 +11,9 @@
 #include "GameEngine/Renderer/Buffer.h"
 #include "GameEngine/Renderer/VertexArray.h"
 #include "GameEngine/Renderer/Renderer.h"
+#include "GameEngine/Renderer/Camera/Camera.h"
+#include "GameEngine/Renderer/Camera/OrthographicCamera.h"
+#include "GameEngine/Renderer/Camera/PerspectiveCamera.h"
 
 namespace GameEngine
 {
@@ -44,7 +47,9 @@ namespace GameEngine
 		std::shared_ptr<VertexArray> m_SquareVA;
 		std::shared_ptr<Shader> m_Shader2;
 
+	private:
 		static Application* s_Instance;
+		static std::shared_ptr<Camera> s_Camera;
 	};
 
 	// To be defined in the client application

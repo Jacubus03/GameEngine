@@ -2,6 +2,8 @@
 
 #include <string>
 #include <unordered_map>
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 namespace GameEngine
 {
@@ -13,6 +15,8 @@ namespace GameEngine
 
         void Bind() const;
         void Unbind() const;
+
+		void UploadUniformMat4(const std::string& name, const glm::mat4& value);
     private:
         uint32_t m_RendererID;
     };

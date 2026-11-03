@@ -3,10 +3,14 @@
 namespace GameEngine
 {
 	Application* Application::s_Instance = nullptr;
+	std::shared_ptr<Camera> Application::s_Camera = nullptr;
 
 	Application::Application()
 	{
 		s_Instance = this;
+		//s_Camera = std::shared_ptr<Camera>(new OrthographicCamera(-1.6f, 1.6f, -0.9f, 0.9f));
+		s_Camera = std::shared_ptr<Camera>(new PerspectiveCamera(45.0f, 16.0f / 9.0f, 0.1f, 100.0f));
+		s_Camera->SetPosition(glm::vec3(0.0f, 0.0f, 3.0f));
 
 		m_Window = std::unique_ptr<Window>(Window::Create());
 		m_Window->SetEventCallback(std::bind(&Application::OnEvent, this, std::placeholders::_1));
@@ -39,10 +43,10 @@ namespace GameEngine
 		m_SquareVA.reset(VertexArray::Create());
 
 		float vertices1[4 * 3] = {
-			-0.5f, -0.5f, 0.0f,
-			 0.5f, -0.5f, 0.0f,
-			 0.5f,  0.5f, 0.0f,
-			 -0.5f,  0.5f, 0.0f
+			-0.75f, -0.75f, 0.0f,
+			 0.75f, -0.75f, 0.0f,
+			 0.75f,  0.75f, 0.0f,
+			 -0.75f,  0.75f, 0.0f
 		};
 		
 		std::shared_ptr<VertexBuffer> squareVB(VertexBuffer::Create(vertices1, sizeof(vertices1)));
@@ -64,14 +68,16 @@ namespace GameEngine
 			layout(location = 0) in vec3 a_Position;
 			layout(location = 1) in vec4 a_Color;
 
+			uniform mat4 u_ViewProjection;
+
 			out vec3 v_Position;
 			out vec4 v_Color;
 			
 			void main()
 			{
-				v_Position = a_Position + vec3(0.0, 0.0, 0.0);
+				v_Position = a_Position;
 				v_Color = a_Color;
-				gl_Position = vec4(v_Position, 1.0);
+				gl_Position = u_ViewProjection * vec4(v_Position, 1.0);
 			}
 		)";
 
@@ -100,14 +106,16 @@ namespace GameEngine
 			layout(location = 0) in vec3 a_Position;
 			layout(location = 1) in vec4 a_Color;
 
+			uniform mat4 u_ViewProjection;
+
 			out vec3 v_Position;
 			out vec4 v_Color;
 			
 			void main()
 			{
-				v_Position = a_Position + vec3(0.0, 0.0, 0.0);
+				v_Position = a_Position;
 				v_Color = a_Color;
-				gl_Position = vec4(v_Position, 1.0);
+				gl_Position = u_ViewProjection * vec4(v_Position, 1.0);
 			}
 		)";
 
@@ -118,7 +126,7 @@ namespace GameEngine
 			
 			void main()
 			{
-				color = vec4(0.5, 0.5, 0.5, 1.0);
+				color = vec4(0.9, 0.9, 0.9, 1.0);
 			}
 		)";
 
@@ -160,12 +168,10 @@ namespace GameEngine
 		while (m_Running)
 		{
 			RenderCommand::Clear();
-			Renderer::BeginScene();
-			
-			m_Shader2->Bind();
-			Renderer::Submit(m_SquareVA);
-			m_Shader->Bind();
-			Renderer::Submit(m_VertexArray);
+			Renderer::BeginScene(s_Camera);
+
+			Renderer::Submit(m_SquareVA, m_Shader2);
+			Renderer::Submit(m_VertexArray, m_Shader);
 
 			Renderer::EndScene();
 
