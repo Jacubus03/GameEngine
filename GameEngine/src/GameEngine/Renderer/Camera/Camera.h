@@ -7,7 +7,7 @@
 
 namespace GameEngine
 {
-    class Camera
+    class GAMEENGINE_API Camera
     {
     public:
 		Camera(const glm::mat4& projection) : m_ProjectionMatrix(projection) { RecalculateViewMatrix(); }
@@ -28,6 +28,12 @@ namespace GameEngine
 
     public:
         void Rotate(float angle, const glm::vec3& axis);
+        void RotateX(float angle) { Rotate(angle, glm::vec3(1.0f, 0.0f, 0.0f)); }
+		void RotateY(float angle) { Rotate(angle, glm::vec3(0.0f, 1.0f, 0.0f)); }
+		void RotateZ(float angle) { Rotate(angle, glm::vec3(0.0f, 0.0f, 1.0f)); }
+        void RotateLocalX(float angle) { Rotate(angle, m_Rotation * glm::vec3(1.0f, 0.0f, 0.0f)); }
+		void RotateLocalY(float angle) { Rotate(angle, m_Rotation * glm::vec3(0.0f, 1.0f, 0.0f)); }
+		void RotateLocalZ(float angle) { Rotate(angle, m_Rotation * glm::vec3(0.0f, 0.0f, 1.0f)); }
 
     protected:
         glm::mat4 m_ProjectionMatrix = glm::mat4(1.0f);

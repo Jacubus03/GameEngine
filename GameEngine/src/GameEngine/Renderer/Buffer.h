@@ -65,7 +65,7 @@ namespace GameEngine
 		}
 	};
 
-	class BufferLayout
+	class GAMEENGINE_API BufferLayout
 	{
 	public:
 		BufferLayout() {};
@@ -98,7 +98,7 @@ namespace GameEngine
 		uint32_t m_Stride = 0;
 	};
 
-	class VertexBuffer
+	class GAMEENGINE_API VertexBuffer
 	{
 	public:
 		virtual ~VertexBuffer() {};
@@ -112,7 +112,7 @@ namespace GameEngine
 		static VertexBuffer* Create(float* vertices, uint32_t size);
 	};
 
-	class IndexBuffer
+	class GAMEENGINE_API IndexBuffer
 	{
 	public:
 		virtual ~IndexBuffer() {};

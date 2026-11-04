@@ -5,7 +5,7 @@
 
 namespace GameEngine
 {
-	class RendererAPI
+	class GAMEENGINE_API RendererAPI
 	{
 	public:
 		enum class API

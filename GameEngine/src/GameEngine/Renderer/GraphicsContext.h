@@ -2,7 +2,7 @@
 
 namespace GameEngine
 {
-	class GraphicsContext
+	class GAMEENGINE_API GraphicsContext
 	{
 	public:
 		virtual void Init() = 0;

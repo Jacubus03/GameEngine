@@ -3,134 +3,16 @@
 namespace GameEngine
 {
 	Application* Application::s_Instance = nullptr;
-	std::shared_ptr<Camera> Application::s_Camera = nullptr;
 
 	Application::Application()
 	{
 		s_Instance = this;
-		//s_Camera = std::shared_ptr<Camera>(new OrthographicCamera(-1.6f, 1.6f, -0.9f, 0.9f));
-		s_Camera = std::shared_ptr<Camera>(new PerspectiveCamera(45.0f, 16.0f / 9.0f, 0.1f, 100.0f));
-		s_Camera->SetPosition(glm::vec3(0.0f, 0.0f, 3.0f));
 
 		m_Window = std::unique_ptr<Window>(Window::Create());
 		m_Window->SetEventCallback(std::bind(&Application::OnEvent, this, std::placeholders::_1));
 
 		m_ImGuiLayer = new ImGuiLayer(m_Window.get());
 		PushOverlay(m_ImGuiLayer);
-
-		// Triangle
-		m_VertexArray.reset(VertexArray::Create());
-
-		float vertices[3 * 7] = {
-			-0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
-			 0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
-			 0.0f,  0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f
-		};
-		std::shared_ptr<VertexBuffer> vertexBuffer(VertexBuffer::Create(vertices, sizeof(vertices)));
-
-		BufferLayout layout = {
-			{ ShaderDataType::Float3, "a_Position" },
-			{ ShaderDataType::Float4, "a_Color"},
-		};
-		vertexBuffer->SetLayout(layout);
-		m_VertexArray->AddVertexBuffer(vertexBuffer);
-
-		unsigned int indices[3] = { 0, 1, 2 };
-		std::shared_ptr<IndexBuffer> indexBuffer(IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
-		m_VertexArray->SetIndexBuffer(indexBuffer);
-
-		// Square
-		m_SquareVA.reset(VertexArray::Create());
-
-		float vertices1[4 * 3] = {
-			-0.75f, -0.75f, 0.0f,
-			 0.75f, -0.75f, 0.0f,
-			 0.75f,  0.75f, 0.0f,
-			 -0.75f,  0.75f, 0.0f
-		};
-		
-		std::shared_ptr<VertexBuffer> squareVB(VertexBuffer::Create(vertices1, sizeof(vertices1)));
-		BufferLayout layout1 = {
-			{ ShaderDataType::Float3, "a_Position" },
-		};
-		squareVB->SetLayout(layout1);
-		m_SquareVA->AddVertexBuffer(squareVB);
-
-		unsigned int indices1[6] = { 0, 1, 2, 2, 3, 0 };
-		std::shared_ptr<IndexBuffer> squareIB(IndexBuffer::Create(indices1, sizeof(indices1) / sizeof(uint32_t)));
-		m_SquareVA->SetIndexBuffer(squareIB);
-
-
-		// Shader
-		std::string vertexSrc = R"(
-			#version 410 core
-			
-			layout(location = 0) in vec3 a_Position;
-			layout(location = 1) in vec4 a_Color;
-
-			uniform mat4 u_ViewProjection;
-
-			out vec3 v_Position;
-			out vec4 v_Color;
-			
-			void main()
-			{
-				v_Position = a_Position;
-				v_Color = a_Color;
-				gl_Position = u_ViewProjection * vec4(v_Position, 1.0);
-			}
-		)";
-
-		std::string fragmentSrc = R"(
-			#version 410 core
-			
-			layout(location = 0) out vec4 color;
-
-			in vec3 v_Position;
-			in vec4 v_Color;
-			
-			void main()
-			{
-				color = vec4((v_Position + 1.0) / 2.0, 1.0);
-				color = v_Color;
-			}
-		)";
-
-		m_Shader.reset(new Shader(vertexSrc, fragmentSrc));
-
-
-		// Shader
-		std::string vertexSrc2 = R"(
-			#version 410 core
-			
-			layout(location = 0) in vec3 a_Position;
-			layout(location = 1) in vec4 a_Color;
-
-			uniform mat4 u_ViewProjection;
-
-			out vec3 v_Position;
-			out vec4 v_Color;
-			
-			void main()
-			{
-				v_Position = a_Position;
-				v_Color = a_Color;
-				gl_Position = u_ViewProjection * vec4(v_Position, 1.0);
-			}
-		)";
-
-		std::string fragmentSrc2 = R"(
-			#version 410 core
-			
-			layout(location = 0) out vec4 color;
-			
-			void main()
-			{
-				color = vec4(0.9, 0.9, 0.9, 1.0);
-			}
-		)";
-
-		m_Shader2.reset(new Shader(vertexSrc2, fragmentSrc2));
 	}
 
 	Application::~Application()
@@ -167,14 +49,6 @@ namespace GameEngine
 	{
 		while (m_Running)
 		{
-			RenderCommand::Clear();
-			Renderer::BeginScene(s_Camera);
-
-			Renderer::Submit(m_SquareVA, m_Shader2);
-			Renderer::Submit(m_VertexArray, m_Shader);
-
-			Renderer::EndScene();
-
 			for (Layer* layer : m_LayerStack)
 				layer->OnUpdate();
 

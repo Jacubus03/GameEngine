@@ -1,6 +1,7 @@
 #pragma once
 
 #include "RenderCommand.h"
+#include "RendererAPI.h"
 #include "VertexArray.h"
 #include "Shader.h"
 #include "Camera/Camera.h"
@@ -9,7 +10,7 @@
 
 namespace GameEngine
 {
-	class Renderer
+	class GAMEENGINE_API Renderer
 	{
 	public:
 		static void BeginScene(const std::shared_ptr<Camera>& camera);

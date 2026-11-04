@@ -7,7 +7,7 @@
 
 namespace GameEngine
 {
-    class Shader
+    class GAMEENGINE_API Shader
     {
     public:
         Shader(const std::string& vertexSrc, const std::string& fragmentSrc);

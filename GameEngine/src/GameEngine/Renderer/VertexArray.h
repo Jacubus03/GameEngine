@@ -3,7 +3,7 @@
 #include "Buffer.h"
 
 namespace GameEngine {
-	class VertexArray {
+	class GAMEENGINE_API VertexArray {
 	public:
 		virtual ~VertexArray() = default;
 
