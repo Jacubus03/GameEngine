@@ -125,29 +125,29 @@ public:
 		m_Shader2.reset(new GameEngine::Shader(vertexSrc2, fragmentSrc2));
 	}
 
-	void OnUpdate() override
+	void OnUpdate(GameEngine::Timestep deltaTime) override
 	{
 		float speed = 1.0f;
-		glm::vec3 newPosition = m_Camera->GetPosition();
+		glm::vec3 moveDirection = glm::vec3();
 		if (GameEngine::Input::IsKeyPressed(GE_KEY_LEFT_SHIFT))
 		{
 			speed = 2.5f;
 		}
 		if (GameEngine::Input::IsKeyPressed(GE_KEY_W))
 		{
-			newPosition += m_Camera->GetRotation() * glm::vec3(0.0f, 0.0f, -0.1f) * speed;
+			moveDirection += m_Camera->GetRotation() * glm::vec3(0.0f, 0.0f, -0.1f);
 		}
 		if (GameEngine::Input::IsKeyPressed(GE_KEY_S))
 		{
-			newPosition += m_Camera->GetRotation() * glm::vec3(0.0f, 0.0f, 0.1f) * speed;
+			moveDirection += m_Camera->GetRotation() * glm::vec3(0.0f, 0.0f, 0.1f);
 		}
 		if (GameEngine::Input::IsKeyPressed(GE_KEY_A))
 		{
-			newPosition += m_Camera->GetRotation() * glm::vec3(-0.1f, 0.0f, 0.0f) * speed;
+			moveDirection += m_Camera->GetRotation() * glm::vec3(-0.1f, 0.0f, 0.0f);
 		}
 		if (GameEngine::Input::IsKeyPressed(GE_KEY_D))
 		{
-			newPosition += m_Camera->GetRotation() * glm::vec3(0.1f, 0.0f, 0.0f) * speed;
+			moveDirection += m_Camera->GetRotation() * glm::vec3(0.1f, 0.0f, 0.0f);
 		}
 		if (GameEngine::Input::IsKeyPressed(GE_KEY_Q))
 		{
@@ -157,7 +157,7 @@ public:
 		{
 			m_Camera->RotateY(-5.0f);
 		}
-		m_Camera->SetPosition(newPosition);
+		if (moveDirection != glm::vec3()) m_Camera->SetPosition(m_Camera->GetPosition() + glm::normalize(moveDirection) * speed * (float)deltaTime);
 
 		GameEngine::RenderCommand::Clear();
 		GameEngine::Renderer::BeginScene(m_Camera);
