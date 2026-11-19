@@ -89,7 +89,7 @@ public:
 			}
 		)";
 
-		m_Shader.reset(new GameEngine::Shader(vertexSrc, fragmentSrc));
+		m_Shader.reset(GameEngine::Shader::Create(vertexSrc, fragmentSrc));
 
 
 		// Shader
@@ -124,7 +124,7 @@ public:
 			}
 		)";
 
-		m_Shader2.reset(new GameEngine::Shader(vertexSrc2, fragmentSrc2));
+		m_Shader2.reset(GameEngine::Shader::Create(vertexSrc2, fragmentSrc2));
 	}
 
 	void OnUpdate(GameEngine::Timestep deltaTime) override
@@ -172,6 +172,7 @@ public:
 			glm::translate(glm::mat4(1.0f), pos) *
 			glm::mat4_cast(glm::quat(glm::radians(rot))) *
 			glm::scale(glm::mat4(1.0f), scale);
+
 		GameEngine::Renderer::Submit(m_SquareVA, m_Shader2, transform);
 		GameEngine::Renderer::Submit(m_VertexArray, m_Shader);
 
