@@ -18,6 +18,7 @@
 // Renderer
 #include "GameEngine/Renderer/Buffer.h"
 #include "GameEngine/Renderer/Shader.h"
+#include "GameEngine/Renderer/Texture.h"
 #include "GameEngine/Renderer/Renderer.h"
 #include "GameEngine/Renderer/VertexArray.h"
 

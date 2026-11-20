@@ -9,6 +9,14 @@ target_sources(Sandbox
         ${SANDBOX_SOURCES}
 )
 
+add_custom_target(CopySandboxAssets ALL
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_CURRENT_SOURCE_DIR}/Assets"
+        "$<TARGET_FILE_DIR:Sandbox>/Assets"
+)
+
+add_dependencies(Sandbox CopySandboxAssets)
+
 target_compile_definitions(Sandbox
     PRIVATE
         GAMEENGINE_PLATFORM_WINDOWS

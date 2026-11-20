@@ -1,60 +1,63 @@
 #include <GameEngine.h>
 
+#include <Platform/OpenGL/OpenGLShader.h>
+
 class ExampleLayer : public GameEngine::Layer
 {
 public:
 	ExampleLayer()
 		: Layer("Example") 
 	{
-		m_Camera = std::shared_ptr<GameEngine::Camera>(new GameEngine::PerspectiveCamera(45.0f, 16.0f / 9.0f, 0.1f, 100.0f));
+		m_Camera = GameEngine::Ref<GameEngine::Camera>(new GameEngine::PerspectiveCamera(45.0f, 16.0f / 9.0f, 0.1f, 100.0f));
 		m_Camera->SetPosition(glm::vec3(0.0f, 0.0f, 3.0f));
-		//m_Camera = std::shared_ptr<GameEngine::Camera>(new GameEngine::OrthographicCamera(-1.6f, 1.6f, -0.9f, 0.9f));
+		//m_Camera = GameEngine::Ref<GameEngine::Camera>(new GameEngine::OrthographicCamera(-1.6f, 1.6f, -0.9f, 0.9f));
 
 		// Triangle
-		m_VertexArray.reset(GameEngine::VertexArray::Create());
+		m_TriangleVA.reset(GameEngine::VertexArray::Create());
 
 		float vertices[3 * 7] = {
 			-0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
 			 0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
 			 0.0f,  0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f
 		};
-		std::shared_ptr<GameEngine::VertexBuffer> vertexBuffer(GameEngine::VertexBuffer::Create(vertices, sizeof(vertices)));
+		GameEngine::Ref<GameEngine::VertexBuffer> vertexBuffer(GameEngine::VertexBuffer::Create(vertices, sizeof(vertices)));
 
 		GameEngine::BufferLayout layout = {
 			{ GameEngine::ShaderDataType::Float3, "a_Position" },
 			{ GameEngine::ShaderDataType::Float4, "a_Color"},
 		};
 		vertexBuffer->SetLayout(layout);
-		m_VertexArray->AddVertexBuffer(vertexBuffer);
+		m_TriangleVA->AddVertexBuffer(vertexBuffer);
 
 		unsigned int indices[3] = { 0, 1, 2 };
-		std::shared_ptr<GameEngine::IndexBuffer> indexBuffer(GameEngine::IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
-		m_VertexArray->SetIndexBuffer(indexBuffer);
+		GameEngine::Ref<GameEngine::IndexBuffer> indexBuffer(GameEngine::IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
+		m_TriangleVA->SetIndexBuffer(indexBuffer);
 
 		// Square
 		m_SquareVA.reset(GameEngine::VertexArray::Create());
 
-		float vertices1[4 * 3] = {
-			-0.75f, -0.75f, 0.0f,
-			 0.75f, -0.75f, 0.0f,
-			 0.75f,  0.75f, 0.0f,
-			 -0.75f,  0.75f, 0.0f
+		float vertices1[4 * 5] = {
+			-0.75f, -0.75f, 0.0f, 0.0f, 0.0f,
+			 0.75f, -0.75f, 0.0f, 1.0f, 0.0f,
+			 0.75f,  0.75f, 0.0f, 1.0f, 1.0f,
+			 -0.75f,  0.75f, 0.0f, 0.0f, 1.0f
 		};
 
-		std::shared_ptr<GameEngine::VertexBuffer> squareVB(GameEngine::VertexBuffer::Create(vertices1, sizeof(vertices1)));
+		GameEngine::Ref<GameEngine::VertexBuffer> squareVB(GameEngine::VertexBuffer::Create(vertices1, sizeof(vertices1)));
 		GameEngine::BufferLayout layout1 = {
 			{ GameEngine::ShaderDataType::Float3, "a_Position" },
+			{ GameEngine::ShaderDataType::Float2, "a_TexCoord" },
 		};
 		squareVB->SetLayout(layout1);
 		m_SquareVA->AddVertexBuffer(squareVB);
 
 		unsigned int indices1[6] = { 0, 1, 2, 2, 3, 0 };
-		std::shared_ptr<GameEngine::IndexBuffer> squareIB(GameEngine::IndexBuffer::Create(indices1, sizeof(indices1) / sizeof(uint32_t)));
+		GameEngine::Ref<GameEngine::IndexBuffer> squareIB(GameEngine::IndexBuffer::Create(indices1, sizeof(indices1) / sizeof(uint32_t)));
 		m_SquareVA->SetIndexBuffer(squareIB);
 
 
 		// Shader
-		std::string vertexSrc = R"(
+		std::string vertexColorShaderVertexSrc = R"(
 			#version 410 core
 			
 			layout(location = 0) in vec3 a_Position;
@@ -63,68 +66,102 @@ public:
 			uniform mat4 u_ViewProjection;
 			uniform mat4 u_Transform;
 
-			out vec3 v_Position;
 			out vec4 v_Color;
 			
 			void main()
 			{
-				v_Position = a_Position;
 				v_Color = a_Color;
-				gl_Position = u_ViewProjection * u_Transform * vec4(v_Position, 1.0);
+				gl_Position = u_ViewProjection * u_Transform * vec4(a_Position, 1.0);
 			}
 		)";
 
-		std::string fragmentSrc = R"(
+		std::string vertexColorShaderFragmentSrc = R"(
 			#version 410 core
 			
 			layout(location = 0) out vec4 color;
 
-			in vec3 v_Position;
 			in vec4 v_Color;
 			
 			void main()
 			{
-				color = vec4((v_Position + 1.0) / 2.0, 1.0);
 				color = v_Color;
 			}
 		)";
 
-		m_Shader.reset(GameEngine::Shader::Create(vertexSrc, fragmentSrc));
+		m_VertexColorShader.reset(GameEngine::Shader::Create(vertexColorShaderVertexSrc, vertexColorShaderFragmentSrc));
 
 
 		// Shader
-		std::string vertexSrc2 = R"(
+		std::string flatColorShaderVertexSrc = R"(
 			#version 410 core
 			
 			layout(location = 0) in vec3 a_Position;
-			layout(location = 1) in vec4 a_Color;
 
 			uniform mat4 u_ViewProjection;
 			uniform mat4 u_Transform;
 
-			out vec3 v_Position;
-			out vec4 v_Color;
-			
 			void main()
 			{
-				v_Position = a_Position;
-				v_Color = a_Color;
-				gl_Position = u_ViewProjection * u_Transform * vec4(v_Position, 1.0);
+				gl_Position = u_ViewProjection * u_Transform * vec4(a_Position, 1.0);
 			}
 		)";
 
-		std::string fragmentSrc2 = R"(
+		std::string flatColorShaderFragmentSrc = R"(
 			#version 410 core
 			
 			layout(location = 0) out vec4 color;
+
+			uniform vec3 u_Color;
 			
 			void main()
 			{
-				color = vec4(0.9, 0.9, 0.9, 1.0);
+				color = vec4(u_Color, 1.0);
 			}
 		)";
 
-		m_Shader2.reset(GameEngine::Shader::Create(vertexSrc2, fragmentSrc2));
+		m_FlatColorShader.reset(GameEngine::Shader::Create(flatColorShaderVertexSrc, flatColorShaderFragmentSrc));
+
+
+		// Shader
+		std::string textureShaderVertexSrc = R"(
+			#version 410 core
+			
+			layout(location = 0) in vec3 a_Position;
+			layout(location = 1) in vec2 a_TexCoord;
+
+			uniform mat4 u_ViewProjection;
+			uniform mat4 u_Transform;
+
+			out vec2 v_TexCoord;
+
+			void main()
+			{
+				v_TexCoord = a_TexCoord;
+				gl_Position = u_ViewProjection * u_Transform * vec4(a_Position, 1.0);
+			}
+		)";
+
+		std::string textureShaderFragmentSrc = R"(
+			#version 410 core
+			
+			layout(location = 0) out vec4 color;
+
+			uniform sampler2D u_Texture;
+
+			in vec2 v_TexCoord;
+			
+			void main()
+			{
+				color = texture(u_Texture, v_TexCoord);
+			}
+		)";
+
+		m_TextureShader.reset(GameEngine::Shader::Create(textureShaderVertexSrc, textureShaderFragmentSrc));
+
+		m_ErrorTexture = (GameEngine::Texture2D::Create("Assets/Textures/error_texture.png"));
+
+		std::dynamic_pointer_cast<GameEngine::OpenGLShader>(m_TextureShader)->Bind();
+		std::dynamic_pointer_cast<GameEngine::OpenGLShader>(m_TextureShader)->UploadUniformInt("u_Texture", 0);
 	}
 
 	void OnUpdate(GameEngine::Timestep deltaTime) override
@@ -161,8 +198,12 @@ public:
 		}
 		if (moveDirection != glm::vec3()) m_Camera->SetPosition(m_Camera->GetPosition() + glm::normalize(moveDirection) * speed * (float)deltaTime);
 
+		GameEngine::RenderCommand::SetClearColor(glm::vec4(0.1f, 0.1f, 0.1f, 1.0f));
 		GameEngine::RenderCommand::Clear();
 		GameEngine::Renderer::BeginScene(m_Camera);
+
+		std::dynamic_pointer_cast<GameEngine::OpenGLShader>(m_FlatColorShader)->Bind();
+		std::dynamic_pointer_cast<GameEngine::OpenGLShader>(m_FlatColorShader)->UploadUniformFloat3("u_Color", glm::vec3(0.9f));
 
 		glm::vec3 pos = glm::vec3(0.0f, -0.3f, -1.0f);
 		glm::vec3 rot = glm::vec3(0.0f, 0.0f, 45.0f);
@@ -173,8 +214,9 @@ public:
 			glm::mat4_cast(glm::quat(glm::radians(rot))) *
 			glm::scale(glm::mat4(1.0f), scale);
 
-		GameEngine::Renderer::Submit(m_SquareVA, m_Shader2, transform);
-		GameEngine::Renderer::Submit(m_VertexArray, m_Shader);
+		m_ErrorTexture->Bind();
+		GameEngine::Renderer::Submit(m_SquareVA, m_TextureShader, transform);
+		GameEngine::Renderer::Submit(m_TriangleVA, m_VertexColorShader);
 
 		GameEngine::Renderer::EndScene();
 	}
@@ -216,13 +258,16 @@ public:
 		return false;
 	}
 
-	std::shared_ptr<GameEngine::VertexArray> m_VertexArray;
-	std::shared_ptr<GameEngine::Shader> m_Shader;
+	GameEngine::Ref<GameEngine::VertexArray> m_TriangleVA;
+	GameEngine::Ref<GameEngine::VertexArray> m_SquareVA;
 
-	std::shared_ptr<GameEngine::VertexArray> m_SquareVA;
-	std::shared_ptr<GameEngine::Shader> m_Shader2;
+	GameEngine::Ref<GameEngine::Shader> m_VertexColorShader;
+	GameEngine::Ref<GameEngine::Shader> m_FlatColorShader;
+	GameEngine::Ref<GameEngine::Shader> m_TextureShader;
 
-	std::shared_ptr<GameEngine::Camera> m_Camera;
+	GameEngine::Ref<GameEngine::Texture2D> m_ErrorTexture;
+
+	GameEngine::Ref<GameEngine::Camera> m_Camera;
 
 	bool m_FirstMouse = true;
 	float m_LastMouseX = 0.0f;

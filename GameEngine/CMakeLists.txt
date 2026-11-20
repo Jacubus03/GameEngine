@@ -56,6 +56,7 @@ file(GLOB_RECURSE GAMEENGINE_SOURCES CONFIGURE_DEPENDS
 target_sources(GameEngine 
     PRIVATE
         ${GAMEENGINE_SOURCES}
+        vendor/stb/stb_image.cpp
 )
 
 target_precompile_headers(GameEngine
@@ -66,6 +67,7 @@ target_precompile_headers(GameEngine
 target_include_directories(GameEngine
     PUBLIC
         src
+        vendor/stb
 )
 
 target_compile_definitions(GameEngine
