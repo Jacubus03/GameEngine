@@ -20,8 +20,6 @@ namespace GameEngine
         int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
         GE_LOG_CORE_ASSERT(status, "Failed to initialize Glad!");
 
-        glEnable(GL_DEPTH_TEST);
-
 		GE_LOG_CORE_INFO("OpenGL Info:");
         GE_LOG_CORE_INFO("  Vendor: {0}", reinterpret_cast<const char*>(glGetString(GL_VENDOR)));
         GE_LOG_CORE_INFO("  Renderer: {0}", reinterpret_cast<const char*>(glGetString(GL_RENDERER)));

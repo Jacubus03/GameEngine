@@ -7,7 +7,10 @@ namespace GameEngine
 	class GAMEENGINE_API RenderCommand
 	{
 	public:
-		static void Init();
+		inline static void Init()
+		{
+			s_RendererAPI->Init();
+		}
 		inline static void SetClearColor(const glm::vec4& color)
 		{
 			s_RendererAPI->SetClearColor(color);
