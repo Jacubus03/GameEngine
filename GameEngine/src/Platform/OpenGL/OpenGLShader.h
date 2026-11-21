@@ -1,13 +1,18 @@
 #pragma once
 
 #include "GameEngine/Renderer/Shader.h"
+#include "GameEngine/Core.h"
 #include <glm/gtc/type_ptr.hpp>
+#include <glad/glad.h>
+#include <fstream>
+
 
 namespace GameEngine
 {
     class GAMEENGINE_API OpenGLShader : public Shader
     {
     public:
+        OpenGLShader(const std::string& filepath);
         OpenGLShader(const std::string& vertexSrc, const std::string& fragmentSrc);
         ~OpenGLShader();
 
@@ -23,6 +28,10 @@ namespace GameEngine
 
         void UploadUniformMat3(const std::string& name, const glm::mat3& value);
         void UploadUniformMat4(const std::string& name, const glm::mat4& value);
+    private:
+        std::string ReadFile(const std::string& filepath);
+        std::unordered_map<GLenum, std::string> PreProcess(const std::string& source);
+        void Compile(std::unordered_map<GLenum, std::string>& shaderSources);
     private:
         uint32_t m_RendererID;
     };
