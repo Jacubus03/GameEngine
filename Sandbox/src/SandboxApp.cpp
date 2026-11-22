@@ -55,14 +55,14 @@ public:
 		GameEngine::Ref<GameEngine::IndexBuffer> squareIB(GameEngine::IndexBuffer::Create(indices1, sizeof(indices1) / sizeof(uint32_t)));
 		m_SquareVA->SetIndexBuffer(squareIB);
 
-		m_VertexColorShader.reset(GameEngine::Shader::Create("Assets/Shaders/VertexColor.glsl"));
-		m_FlatColorShader.reset(GameEngine::Shader::Create("Assets/Shaders/FlatColor.glsl"));
-		m_TextureShader.reset(GameEngine::Shader::Create("Assets/Shaders/Texture.glsl"));
+		auto vertexColorShader = m_ShaderLibrary.Load("Assets/Shaders/VertexColor.glsl");
+		auto flatColorShader = m_ShaderLibrary.Load("Assets/Shaders/FlatColor.glsl");
+		auto textureShader = m_ShaderLibrary.Load("Assets/Shaders/Texture.glsl");
 
 		m_ErrorTexture = (GameEngine::Texture2D::Create("Assets/Textures/error_texture.png"));
 
-		std::dynamic_pointer_cast<GameEngine::OpenGLShader>(m_TextureShader)->Bind();
-		std::dynamic_pointer_cast<GameEngine::OpenGLShader>(m_TextureShader)->UploadUniformInt("u_Texture", 0);
+		std::dynamic_pointer_cast<GameEngine::OpenGLShader>(textureShader)->Bind();
+		std::dynamic_pointer_cast<GameEngine::OpenGLShader>(textureShader)->UploadUniformInt("u_Texture", 0);
 	}
 
 	void OnUpdate(GameEngine::Timestep deltaTime) override
@@ -103,8 +103,12 @@ public:
 		GameEngine::RenderCommand::Clear();
 		GameEngine::Renderer::BeginScene(m_Camera);
 
-		std::dynamic_pointer_cast<GameEngine::OpenGLShader>(m_FlatColorShader)->Bind();
-		std::dynamic_pointer_cast<GameEngine::OpenGLShader>(m_FlatColorShader)->UploadUniformFloat3("u_Color", glm::vec3(0.9f));
+		auto vertexColorShader = m_ShaderLibrary.Get("VertexColor");
+		auto flatColorShader = m_ShaderLibrary.Get("FlatColor");
+		auto textureShader = m_ShaderLibrary.Get("Texture");
+
+		std::dynamic_pointer_cast<GameEngine::OpenGLShader>(flatColorShader)->Bind();
+		std::dynamic_pointer_cast<GameEngine::OpenGLShader>(flatColorShader)->UploadUniformFloat3("u_Color", glm::vec3(0.9f));
 
 		glm::vec3 pos = glm::vec3(0.0f, -0.3f, -1.0f);
 		glm::vec3 rot = glm::vec3(0.0f, 0.0f, 45.0f);
@@ -116,8 +120,8 @@ public:
 			glm::scale(glm::mat4(1.0f), scale);
 
 		m_ErrorTexture->Bind();
-		GameEngine::Renderer::Submit(m_SquareVA, m_TextureShader, transform);
-		GameEngine::Renderer::Submit(m_TriangleVA, m_VertexColorShader);
+		GameEngine::Renderer::Submit(m_SquareVA, textureShader, transform);
+		GameEngine::Renderer::Submit(m_TriangleVA, vertexColorShader);
 
 		GameEngine::Renderer::EndScene();
 	}
@@ -159,12 +163,10 @@ public:
 		return false;
 	}
 
+	GameEngine::ShaderLibrary m_ShaderLibrary;
+
 	GameEngine::Ref<GameEngine::VertexArray> m_TriangleVA;
 	GameEngine::Ref<GameEngine::VertexArray> m_SquareVA;
-
-	GameEngine::Ref<GameEngine::Shader> m_VertexColorShader;
-	GameEngine::Ref<GameEngine::Shader> m_FlatColorShader;
-	GameEngine::Ref<GameEngine::Shader> m_TextureShader;
 
 	GameEngine::Ref<GameEngine::Texture2D> m_ErrorTexture;
 
