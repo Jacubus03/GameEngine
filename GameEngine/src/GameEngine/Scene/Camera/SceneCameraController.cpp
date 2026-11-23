@@ -20,17 +20,19 @@ namespace GameEngine
 			speed = 2.5f;
 
 		// Movement
+		glm::quat rotation = m_Camera.GetTransform().GetGlobalRotation();
+
 		if (Input::IsKeyPressed(GE_KEY_W))
-			moveDirection += m_Camera.GetTransform().GetGlobalRotation() * glm::vec3(0.0f, 0.0f, -1.0f);
+			moveDirection += rotation * glm::vec3(0.0f, 0.0f, -1.0f);
 
 		if (Input::IsKeyPressed(GE_KEY_S))
-			moveDirection += m_Camera.GetTransform().GetGlobalRotation() * glm::vec3(0.0f, 0.0f, 1.0f);
+			moveDirection += rotation * glm::vec3(0.0f, 0.0f, 1.0f);
 
 		if (Input::IsKeyPressed(GE_KEY_A))
-			moveDirection += m_Camera.GetTransform().GetGlobalRotation() * glm::vec3(-1.0f, 0.0f, 0.0f);
+			moveDirection += rotation * glm::vec3(-1.0f, 0.0f, 0.0f);
 
 		if (Input::IsKeyPressed(GE_KEY_D))
-			moveDirection += m_Camera.GetTransform().GetGlobalRotation() * glm::vec3(1.0f, 0.0f, 0.0f);
+			moveDirection += rotation * glm::vec3(1.0f, 0.0f, 0.0f);
 
 		// Rotation
 		float rotationSpeed = 90.0f * (float)deltaTime;
@@ -88,7 +90,6 @@ namespace GameEngine
 		glm::vec3 rotation = m_Camera.GetTransform().GetEulerAngles();
 		m_Camera.GetTransform().RotateGlobalY(xOffset * m_MouseSensitivity);
 		m_Camera.GetTransform().RotateXClamped(yOffset * m_MouseSensitivity, -89.0f, 89.0f);
-		GE_LOG_TRACE("X: {0}, Y: {1}, Z: {2}", m_Camera.GetTransform().GetGlobalEulerAngles().x, m_Camera.GetTransform().GetGlobalEulerAngles().y, m_Camera.GetTransform().GetGlobalEulerAngles().z);
 
 		return false;
 	}
@@ -100,6 +101,7 @@ namespace GameEngine
 
 	bool SceneCameraController::OnWindowResized(WindowResizeEvent& e)
 	{
+		m_Camera.SetViewportSize(e.GetWidth(), e.GetHeight());
 		return false;
 	}
 }
