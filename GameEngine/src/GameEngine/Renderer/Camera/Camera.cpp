@@ -1,21 +1,24 @@
+
 #include "Camera.h"
+
+#include <glm/gtc/matrix_transform.hpp>
 
 namespace GameEngine
 {
-	void Camera::Rotate(float angle, const glm::vec3& axis)
+    Camera::Camera(const glm::mat4& projection)
+        : m_ProjectionMatrix(projection)
     {
-        glm::quat rotation = glm::angleAxis(glm::radians(angle), glm::normalize(axis));
-        m_Rotation = glm::normalize(rotation * m_Rotation);
+        m_Transform.SetOnTransformChanged([this]()
+        {
+            RecalculateViewMatrix();
+        });
+
         RecalculateViewMatrix();
     }
 
-	void Camera::RecalculateViewMatrix()
-	{
-		glm::mat4 transform =
-			glm::translate(glm::mat4(1.0f), m_Position) *
-			glm::mat4_cast(m_Rotation);
-
-		m_ViewMatrix = glm::inverse(transform);
-		m_ViewProjectionMatrix = m_ProjectionMatrix * m_ViewMatrix;
-	}
+    void Camera::RecalculateViewMatrix()
+    {
+        m_ViewMatrix = glm::inverse(m_Transform.GetGlobalTransform());
+        m_ViewProjectionMatrix = m_ProjectionMatrix * m_ViewMatrix;
+    }
 }

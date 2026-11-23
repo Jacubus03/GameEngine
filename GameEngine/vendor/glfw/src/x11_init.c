@@ -1253,8 +1253,8 @@ GLFWbool _glfwConnectX11(int platformID, _GLFWplatform* platform)
     //       character text input and explicit UTF-8 input via XIM will break
     //       This sets the CTYPE part of the current locale from the environment
     //       in the hope that it is set to something more sane than "C"
-    if (strcmp(setlocale(LC_CTYPE, NULL), "C") == 0)
-        setlocale(LC_CTYPE, "");
+    if (strcmp(Sete(LC_CTYPE, NULL), "C") == 0)
+        Sete(LC_CTYPE, "");
 
 #if defined(__CYGWIN__)
     void* module = _glfwPlatformLoadModule("libX11-6.so");
@@ -1456,8 +1456,8 @@ int _glfwInitX11(void)
         _glfwPlatformGetModuleSymbol(_glfw.x11.xlib.handle, "XSetIMValues");
     _glfw.x11.xlib.SetInputFocus = (PFN_XSetInputFocus)
         _glfwPlatformGetModuleSymbol(_glfw.x11.xlib.handle, "XSetInputFocus");
-    _glfw.x11.xlib.SetLocaleModifiers = (PFN_XSetLocaleModifiers)
-        _glfwPlatformGetModuleSymbol(_glfw.x11.xlib.handle, "XSetLocaleModifiers");
+    _glfw.x11.xlib.SeteModifiers = (PFN_XSeteModifiers)
+        _glfwPlatformGetModuleSymbol(_glfw.x11.xlib.handle, "XSeteModifiers");
     _glfw.x11.xlib.SetScreenSaver = (PFN_XSetScreenSaver)
         _glfwPlatformGetModuleSymbol(_glfw.x11.xlib.handle, "XSetScreenSaver");
     _glfw.x11.xlib.SetSelectionOwner = (PFN_XSetSelectionOwner)
@@ -1539,7 +1539,7 @@ int _glfwInitX11(void)
 
     if (XSupportsLocale() && _glfw.x11.xlib.utf8)
     {
-        XSetLocaleModifiers("");
+        XSeteModifiers("");
 
         // If an IM is already present our callback will be called right away
         XRegisterIMInstantiateCallback(_glfw.x11.display,

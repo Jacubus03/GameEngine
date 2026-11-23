@@ -6,10 +6,12 @@ class ExampleLayer : public GameEngine::Layer
 {
 public:
 	ExampleLayer()
-		: Layer("Example") 
+		: Layer("Example")
 	{
+		//m_TestTransform.SetPosition({2.0f, 0.0f, 0.0f});
 		m_Camera = GameEngine::Ref<GameEngine::Camera>(new GameEngine::PerspectiveCamera(45.0f, 16.0f / 9.0f, 0.1f, 100.0f));
-		m_Camera->SetPosition(glm::vec3(0.0f, 0.0f, 3.0f));
+		//m_Camera->GetTransform().SetParent(&m_TestTransform);
+		m_Camera->GetTransform().SetPosition(glm::vec3(0.0f, 0.0f, 3.0f));
 		//m_Camera = GameEngine::Ref<GameEngine::Camera>(new GameEngine::OrthographicCamera(-1.6f, 1.6f, -0.9f, 0.9f));
 
 		// Triangle
@@ -75,29 +77,57 @@ public:
 		}
 		if (GameEngine::Input::IsKeyPressed(GE_KEY_W))
 		{
-			moveDirection += m_Camera->GetRotation() * glm::vec3(0.0f, 0.0f, -0.1f);
+			moveDirection += m_Camera->GetTransform().GetGlobalRotation() * glm::vec3(0.0f, 0.0f, -0.1f);
 		}
 		if (GameEngine::Input::IsKeyPressed(GE_KEY_S))
 		{
-			moveDirection += m_Camera->GetRotation() * glm::vec3(0.0f, 0.0f, 0.1f);
+			moveDirection += m_Camera->GetTransform().GetGlobalRotation() * glm::vec3(0.0f, 0.0f, 0.1f);
 		}
 		if (GameEngine::Input::IsKeyPressed(GE_KEY_A))
 		{
-			moveDirection += m_Camera->GetRotation() * glm::vec3(-0.1f, 0.0f, 0.0f);
+			moveDirection += m_Camera->GetTransform().GetGlobalRotation() * glm::vec3(-0.1f, 0.0f, 0.0f);
 		}
 		if (GameEngine::Input::IsKeyPressed(GE_KEY_D))
 		{
-			moveDirection += m_Camera->GetRotation() * glm::vec3(0.1f, 0.0f, 0.0f);
+			moveDirection += m_Camera->GetTransform().GetGlobalRotation() * glm::vec3(0.1f, 0.0f, 0.0f);
 		}
 		if (GameEngine::Input::IsKeyPressed(GE_KEY_Q))
 		{
-			m_Camera->RotateY(5.0f);
+			m_Camera->GetTransform().RotateGlobalY(5.0f);
 		}
 		if (GameEngine::Input::IsKeyPressed(GE_KEY_E))
 		{
-			m_Camera->RotateY(-5.0f);
+			m_Camera->GetTransform().RotateGlobalY(-5.0f);
 		}
-		if (moveDirection != glm::vec3()) m_Camera->SetPosition(m_Camera->GetPosition() + glm::normalize(moveDirection) * speed * (float)deltaTime);
+		if (moveDirection != glm::vec3()) m_Camera->GetTransform().SetGlobalPosition(m_Camera->GetTransform().GetGlobalPosition() + glm::normalize(moveDirection) * speed * (float)deltaTime);
+
+
+		//if (GameEngine::Input::IsKeyPressed(GE_KEY_I))
+		//{
+		//	moveDirection += m_TestTransform.GetGlobalRotation() * glm::vec3(0.0f, 0.0f, -0.1f);
+		//}
+		//if (GameEngine::Input::IsKeyPressed(GE_KEY_K))
+		//{
+		//	moveDirection += m_TestTransform.GetGlobalRotation() * glm::vec3(0.0f, 0.0f, 0.1f);
+		//}
+		//if (GameEngine::Input::IsKeyPressed(GE_KEY_J))
+		//{
+		//	moveDirection += m_TestTransform.GetGlobalRotation() * glm::vec3(-0.1f, 0.0f, 0.0f);
+		//}
+		//if (GameEngine::Input::IsKeyPressed(GE_KEY_L))
+		//{
+		//	moveDirection += m_TestTransform.GetGlobalRotation() * glm::vec3(0.1f, 0.0f, 0.0f);
+		//}
+		//if (GameEngine::Input::IsKeyPressed(GE_KEY_U))
+		//{
+		//	m_TestTransform.RotateGlobalY(5.0f);
+		//}
+		//if (GameEngine::Input::IsKeyPressed(GE_KEY_O))
+		//{
+		//	m_TestTransform.RotateGlobalY(-5.0f);
+		//}
+		//if (moveDirection != glm::vec3()) m_TestTransform.SetGlobalPosition(m_TestTransform.GetGlobalPosition() + glm::normalize(moveDirection) * speed * (float)deltaTime);
+
 
 		GameEngine::RenderCommand::SetClearColor(glm::vec4(0.1f, 0.1f, 0.1f, 1.0f));
 		GameEngine::RenderCommand::Clear();
@@ -157,12 +187,13 @@ public:
 
 		constexpr float sensitivity = 0.1f;
 
-		m_Camera->RotateY(xOffset * sensitivity);
-		m_Camera->RotateLocalX(yOffset * sensitivity);
+		m_Camera->GetTransform().RotateGlobalY(xOffset * sensitivity);
+		m_Camera->GetTransform().RotateX(yOffset * sensitivity);
 
 		return false;
 	}
 
+	//GameEngine::Transform m_TestTransform;
 	GameEngine::ShaderLibrary m_ShaderLibrary;
 
 	GameEngine::Ref<GameEngine::VertexArray> m_TriangleVA;

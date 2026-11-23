@@ -18615,7 +18615,7 @@ static void ImGui::DockContextBuildNodesFromSettings(ImGuiContext* ctx, ImGuiDoc
             node->ParentNode->ChildNodes[1] = node;
         node->SelectedTabId = settings->SelectedTabId;
         node->SplitAxis = (ImGuiAxis)settings->SplitAxis;
-        node->SetLocalFlags(settings->Flags & ImGuiDockNodeFlags_SavedFlagsMask_);
+        node->SetFlags(settings->Flags & ImGuiDockNodeFlags_SavedFlagsMask_);
 
         // Bind host window immediately if it already exist (in case of a rebuild)
         // This is useful as the RootWindowForTitleBarHighlight links necessary to highlight the currently focused node requires node->HostWindow to be set.
@@ -18756,7 +18756,7 @@ void ImGui::DockContextProcessDock(ImGuiContext* ctx, ImGuiDockRequest* req)
         new_node->HostWindow = node->HostWindow;
         node = new_node;
     }
-    node->SetLocalFlags(node->LocalFlags & ~ImGuiDockNodeFlags_HiddenTabBar);
+    node->SetFlags(node->LocalFlags & ~ImGuiDockNodeFlags_HiddenTabBar);
 
     if (node != payload_node)
     {
@@ -18794,8 +18794,8 @@ void ImGui::DockContextProcessDock(ImGuiContext* ctx, ImGuiDockRequest* req)
                     IM_ASSERT(last_focused_node != NULL);
                     ImGuiDockNode* last_focused_root_node = DockNodeGetRootNode(last_focused_node);
                     IM_ASSERT(last_focused_root_node == DockNodeGetRootNode(payload_node));
-                    last_focused_node->SetLocalFlags(last_focused_node->LocalFlags | ImGuiDockNodeFlags_CentralNode);
-                    node->SetLocalFlags(node->LocalFlags & ~ImGuiDockNodeFlags_CentralNode);
+                    last_focused_node->SetFlags(last_focused_node->LocalFlags | ImGuiDockNodeFlags_CentralNode);
+                    node->SetFlags(node->LocalFlags & ~ImGuiDockNodeFlags_CentralNode);
                     last_focused_root_node->CentralNode = last_focused_node;
                 }
 
@@ -19323,9 +19323,9 @@ static void ImGui::DockNodeUpdateFlagsAndCollapse(ImGuiDockNode* node)
     // Apply toggles at a single point of the frame (here!)
     const ImGuiDockNodeFlags prev_local_flags = node->LocalFlags;
     if (node->Windows.Size > 1)
-        node->SetLocalFlags(node->LocalFlags & ~ImGuiDockNodeFlags_HiddenTabBar);
+        node->SetFlags(node->LocalFlags & ~ImGuiDockNodeFlags_HiddenTabBar);
     else if (node->WantHiddenTabBarToggle)
-        node->SetLocalFlags(node->LocalFlags ^ ImGuiDockNodeFlags_HiddenTabBar);
+        node->SetFlags(node->LocalFlags ^ ImGuiDockNodeFlags_HiddenTabBar);
     if ((node->LocalFlags ^ prev_local_flags) & ImGuiDockNodeFlags_SavedFlagsMask_)
         MarkIniSettingsDirty(); // Bit flaky to only do this here. Perhaps compare node flags every frame? #9380
     node->WantHiddenTabBarToggle = false;
@@ -20947,7 +20947,7 @@ ImGuiID ImGui::DockSpace(ImGuiID dockspace_id, const ImVec2& size_arg, ImGuiDock
     {
         IMGUI_DEBUG_LOG_DOCKING("[docking] DockSpace: dockspace node 0x%08X created\n", dockspace_id);
         node = DockContextAddNode(&g, dockspace_id);
-        node->SetLocalFlags(ImGuiDockNodeFlags_CentralNode);
+        node->SetFlags(ImGuiDockNodeFlags_CentralNode);
     }
     if (window_class && window_class->ClassId != node->WindowClass.ClassId)
         IMGUI_DEBUG_LOG_DOCKING("[docking] DockSpace: dockspace node 0x%08X: setup WindowClass 0x%08X -> 0x%08X\n", dockspace_id, node->WindowClass.ClassId, window_class->ClassId);
@@ -20959,10 +20959,10 @@ ImGuiID ImGui::DockSpace(ImGuiID dockspace_id, const ImVec2& size_arg, ImGuiDock
     if (node->LastFrameActive == g.FrameCount && !(flags & ImGuiDockNodeFlags_KeepAliveOnly))
     {
         IM_ASSERT(node->IsDockSpace() == false && "Cannot call DockSpace() twice a frame with the same ID");
-        node->SetLocalFlags(node->LocalFlags | ImGuiDockNodeFlags_DockSpace);
+        node->SetFlags(node->LocalFlags | ImGuiDockNodeFlags_DockSpace);
         return dockspace_id;
     }
-    node->SetLocalFlags(node->LocalFlags | ImGuiDockNodeFlags_DockSpace);
+    node->SetFlags(node->LocalFlags | ImGuiDockNodeFlags_DockSpace);
 
     // Keep alive mode, this is allow windows docked into this node so stay docked even if they are not visible
     if (flags & ImGuiDockNodeFlags_KeepAliveOnly)
@@ -21013,7 +21013,7 @@ ImGuiID ImGui::DockSpace(ImGuiID dockspace_id, const ImVec2& size_arg, ImGuiDock
     // The specific sub-property of _CentralNode we are interested in recovering here is the "Don't delete when empty" property,
     // as it doesn't make sense for an empty dockspace to not have this property.
     if (node->IsLeafNode() && !node->IsCentralNode())
-        node->SetLocalFlags(node->LocalFlags | ImGuiDockNodeFlags_CentralNode);
+        node->SetFlags(node->LocalFlags | ImGuiDockNodeFlags_CentralNode);
 
     // Update the node
     DockNodeUpdate(node);
@@ -21173,7 +21173,7 @@ ImGuiID ImGui::DockBuilderAddNode(ImGuiID node_id, ImGuiDockNodeFlags flags)
     else
     {
         node = DockContextAddNode(&g, node_id);
-        node->SetLocalFlags(flags);
+        node->SetFlags(flags);
     }
     node->LastFrameAlive = g.FrameCount;   // Set this otherwise BeginDocked will undock during the same frame.
     return node->ID;
@@ -21194,7 +21194,7 @@ void ImGui::DockBuilderRemoveNode(ImGuiID node_id)
     if (node == NULL)
         return;
     if (node->IsCentralNode() && node->ParentNode)
-        node->ParentNode->SetLocalFlags(node->ParentNode->LocalFlags | ImGuiDockNodeFlags_CentralNode);
+        node->ParentNode->SetFlags(node->ParentNode->LocalFlags | ImGuiDockNodeFlags_CentralNode);
     DockContextRemoveNode(&g, node, true);
 }
 
@@ -21265,7 +21265,7 @@ void ImGui::DockBuilderRemoveNodeChildNodes(ImGuiID root_id)
     else if (has_central_node)
     {
         root_node->CentralNode = root_node;
-        root_node->SetLocalFlags(root_node->LocalFlags | ImGuiDockNodeFlags_CentralNode);
+        root_node->SetFlags(root_node->LocalFlags | ImGuiDockNodeFlags_CentralNode);
     }
 }
 

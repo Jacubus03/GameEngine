@@ -589,7 +589,7 @@ int _glfwInitCocoa(void)
     if (!_glfw.ns.eventSource)
         return GLFW_FALSE;
 
-    CGEventSourceSetLocalEventsSuppressionInterval(_glfw.ns.eventSource, 0.0);
+    CGEventSourceSetEventsSuppressionInterval(_glfw.ns.eventSource, 0.0);
 
     if (!initializeTIS())
         return GLFW_FALSE;

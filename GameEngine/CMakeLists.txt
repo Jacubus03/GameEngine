@@ -71,6 +71,8 @@ target_include_directories(GameEngine
 )
 
 target_compile_definitions(GameEngine
+    PUBLIC 
+        GLM_ENABLE_EXPERIMENTAL
     PRIVATE
         GAMEENGINE_BUILD_DLL
 
