@@ -5,10 +5,41 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 
+namespace
+{
+    // (X, Y, Z) = (Pitch, Yaw, Roll)
+    glm::vec3 QuaternionToEuler(const glm::quat& rotation)
+    {
+        const glm::quat q(
+            rotation.w,
+            rotation.y,
+            rotation.x,
+            rotation.z
+        );
+
+        return glm::vec3(
+            glm::yaw(q),
+            glm::pitch(q),
+            glm::roll(q)
+        );
+    }
+
+    glm::quat EulerToQuaternion(const glm::vec3& euler)
+    {
+        const glm::quat q(glm::vec3(
+            euler.y,
+            euler.x,
+            euler.z
+        ));
+
+        return glm::normalize(glm::quat(q.w, q.y, q.x, q.z));
+    }
+}
+
 namespace GameEngine
 {
     Transform::Transform(const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& scale)
-        : m_Position(position), m_Rotation(glm::quat(glm::radians(rotation))), m_Scale(scale)
+        : m_Position(position), m_Rotation(EulerToQuaternion(glm::radians(rotation))), m_Scale(scale)
     {
     }
 
@@ -52,7 +83,7 @@ namespace GameEngine
     // Local Rotation
     glm::vec3 Transform::GetEulerAngles() const
     {
-        return glm::degrees(glm::eulerAngles(m_Rotation));
+        return glm::degrees(QuaternionToEuler(m_Rotation));
     }
 
     void Transform::SetRotation(const glm::quat& rotation)
@@ -63,7 +94,7 @@ namespace GameEngine
 
     void Transform::SetRotation(const glm::vec3& angles)
     {
-        m_Rotation = glm::quat(glm::radians(angles));
+        m_Rotation = EulerToQuaternion(glm::radians(angles));
         NotifyTransformChanged();
     }
 
@@ -84,7 +115,7 @@ namespace GameEngine
 
     glm::vec3 Transform::GetGlobalEulerAngles() const
     {
-        return glm::degrees(glm::eulerAngles(GetGlobalRotation()));
+        return glm::degrees(QuaternionToEuler(GetGlobalRotation()));
     }
 
     void Transform::SetGlobalRotation(const glm::quat& rotation)
@@ -99,7 +130,7 @@ namespace GameEngine
 
     void Transform::SetGlobalRotation(const glm::vec3& angles)
     {
-        SetGlobalRotation(glm::quat(glm::radians(angles)));
+        SetGlobalRotation(EulerToQuaternion(glm::radians(angles)));
     }
 
     void Transform::SetGlobalRotation(float angle, const glm::vec3& axis)
@@ -114,6 +145,19 @@ namespace GameEngine
         m_Rotation = glm::normalize(rotation * m_Rotation);
 
         NotifyTransformChanged();
+    }
+
+    void Transform::RotateXClamped(float angle, float minAngle, float maxAngle)
+    {
+        glm::vec3 eulerAngles = GetEulerAngles();
+
+        eulerAngles.x = glm::clamp(
+            eulerAngles.x + angle,
+            minAngle,
+            maxAngle
+        );
+
+        SetRotation(eulerAngles);
     }
 
     // Local Scale
@@ -233,5 +277,27 @@ namespace GameEngine
 
         for (Transform* child : m_Children)
             child->NotifyTransformChanged();
+    }
+
+        glm::vec3 QuaternionToEuler(const glm::quat& rotation)
+    {
+        const glm::quat q(rotation.w, rotation.y, rotation.x, rotation.z);
+
+        return glm::vec3(
+            glm::yaw(q),
+            glm::pitch(q),
+            glm::roll(q)
+        );
+    }
+
+    glm::quat EulerToQuaternion(const glm::vec3& euler)
+    {
+        const glm::quat q(glm::vec3(
+            euler.y,
+            euler.x,
+            euler.z
+        ));
+
+        return glm::quat(q.w, q.y, q.x, q.z);
     }
 }

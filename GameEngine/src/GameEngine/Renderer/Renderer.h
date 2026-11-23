@@ -4,7 +4,7 @@
 #include "RendererAPI.h"
 #include "VertexArray.h"
 #include "Shader.h"
-#include "Camera/Camera.h"
+#include "GameEngine/Scene/Camera/Camera.h"
 
 #include <glm/glm.hpp>
 

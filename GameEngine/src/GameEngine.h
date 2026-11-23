@@ -22,9 +22,11 @@
 #include "GameEngine/Renderer/Renderer.h"
 #include "GameEngine/Renderer/VertexArray.h"
 
-#include "GameEngine/Renderer/Camera/Camera.h"
-#include "GameEngine/Renderer/Camera/OrthographicCamera.h"
-#include "GameEngine/Renderer/Camera/PerspectiveCamera.h"
+// Scene
+#include "GameEngine/Scene/Camera/Camera.h"
+#include "GameEngine/Scene/Camera/OrthographicCamera.h"
+#include "GameEngine/Scene/Camera/PerspectiveCamera.h"
+#include "GameEngine/Scene/Camera/SceneCameraController.h"
 // ===
 
 // Entry Point

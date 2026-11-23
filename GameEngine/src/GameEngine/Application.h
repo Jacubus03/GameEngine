@@ -12,9 +12,9 @@
 #include "GameEngine/Renderer/Buffer.h"
 #include "GameEngine/Renderer/VertexArray.h"
 #include "GameEngine/Renderer/Renderer.h"
-#include "GameEngine/Renderer/Camera/Camera.h"
-#include "GameEngine/Renderer/Camera/OrthographicCamera.h"
-#include "GameEngine/Renderer/Camera/PerspectiveCamera.h"
+#include "GameEngine/Scene/Camera/Camera.h"
+#include "GameEngine/Scene/Camera/OrthographicCamera.h"
+#include "GameEngine/Scene/Camera/PerspectiveCamera.h"
 
 namespace GameEngine
 {

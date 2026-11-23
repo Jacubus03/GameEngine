@@ -50,6 +50,8 @@ namespace GameEngine
         void RotateGlobalY(float angle) { Rotate(angle, glm::vec3(0.0f, 1.0f, 0.0f)); }
         void RotateGlobalZ(float angle) { Rotate(angle, glm::vec3(0.0f, 0.0f, 1.0f)); }
 
+        void RotateXClamped(float angle, float minAngle, float maxAngle);
+
         // Scale
         const glm::vec3& GetScale() const { return m_Scale; }
         void SetScale(const glm::vec3& scale);
