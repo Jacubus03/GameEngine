@@ -1,7 +1,7 @@
 #pragma once
 
-#include "GameEngine/Layer.h"
-#include "GameEngine/Window.h"
+#include "GameEngine/Core/Layer.h"
+#include "GameEngine/Core/Window.h"
 #include "GameEngine/Events/KeyEvent.h"
 #include "GameEngine/Events/MouseEvent.h"
 #include "GameEngine/Events/ApplicationEvent.h"

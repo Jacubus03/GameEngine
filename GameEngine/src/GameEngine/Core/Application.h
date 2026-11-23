@@ -1,11 +1,11 @@
 #pragma once
 
-#include "GameEngine/Core.h"
-#include "GameEngine/Window.h"
-#include "GameEngine/LayerStack.h"
+#include "GameEngine/Core/Core.h"
+#include "GameEngine/Core/Window.h"
+#include "GameEngine/Core/LayerStack.h"
 #include "GameEngine/Events/Event.h"
 #include "GameEngine/Events/ApplicationEvent.h"
-#include "GameEngine/Log.h"
+#include "GameEngine/Core/Log.h"
 #include "GameEngine/Core/Timestep.h"
 #include "GameEngine/ImGui/ImGuiLayer.h"
 #include "GameEngine/Renderer/Shader.h"

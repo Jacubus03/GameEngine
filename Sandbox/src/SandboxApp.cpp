@@ -1,4 +1,6 @@
 #include <GameEngine.h>
+#include "GameEngine/Core/EntryPoint.h"
+#include "Sandbox3D.h"
 
 #include <Platform/OpenGL/OpenGLShader.h>
 
@@ -120,7 +122,8 @@ class Sandbox : public GameEngine::Application
 	public:
 		Sandbox()
 		{
-			PushLayer(new ExampleLayer());
+			//PushLayer(new ExampleLayer());
+			PushLayer(new Sandbox3D());
 		}
 		~Sandbox()
 		{

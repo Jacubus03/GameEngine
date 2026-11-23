@@ -1,7 +1,7 @@
 #include "WindowsWindow.h"
 
-#include "GameEngine/Core.h"
-#include "GameEngine/Log.h"
+#include "GameEngine/Core/Core.h"
+#include "GameEngine/Core/Log.h"
 #include "GameEngine/Events/ApplicationEvent.h"
 #include "GameEngine/Events/MouseEvent.h"
 #include "GameEngine/Events/KeyEvent.h"

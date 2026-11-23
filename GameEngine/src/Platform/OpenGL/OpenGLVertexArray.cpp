@@ -1,5 +1,5 @@
 #include "OpenGLVertexArray.h"
-#include "GameEngine/Core.h"
+#include "GameEngine/Core/Core.h"
 
 #include <glad/glad.h>
 

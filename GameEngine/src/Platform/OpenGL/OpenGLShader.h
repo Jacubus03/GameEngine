@@ -1,7 +1,7 @@
 #pragma once
 
 #include "GameEngine/Renderer/Shader.h"
-#include "GameEngine/Core.h"
+#include "GameEngine/Core/Core.h"
 #include <glm/gtc/type_ptr.hpp>
 #include <glad/glad.h>
 #include <fstream>

@@ -1,6 +1,6 @@
 #include "ImGuiLayer.h"
 
-#include "GameEngine/Application.h"
+#include "GameEngine/Core/Application.h"
 #include "ImGui.h"
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>

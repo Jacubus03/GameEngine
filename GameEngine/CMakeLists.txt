@@ -1,4 +1,4 @@
-# Build spdlog before creating GameEngine
+# Dependencies
 add_subdirectory(vendor/spdlog)
 add_subdirectory(vendor/glfw)
 add_subdirectory(vendor/glm)
@@ -13,29 +13,7 @@ target_include_directories(glad
         vendor/glad/include
 )
 
-# ImGui
-add_library(imgui STATIC
-    vendor/imgui/imgui.cpp
-    vendor/imgui/imgui_demo.cpp
-    vendor/imgui/imgui_draw.cpp
-    vendor/imgui/imgui_tables.cpp
-    vendor/imgui/imgui_widgets.cpp
-
-    vendor/imgui/backends/imgui_impl_glfw.cpp
-    vendor/imgui/backends/imgui_impl_opengl3.cpp
-)
-
-target_include_directories(imgui
-    PUBLIC
-        vendor/imgui
-)
-
-target_link_libraries(imgui
-    PUBLIC
-        glfw
-)
-
-# GameEngine
+# GameEngine DLL
 add_library(GameEngine SHARED)
 
 if(MSVC)
@@ -48,31 +26,42 @@ if(MSVC)
     )
 endif()
 
+# Engine source files
 file(GLOB_RECURSE GAMEENGINE_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.h"
 )
 
-target_sources(GameEngine 
-    PRIVATE
-        ${GAMEENGINE_SOURCES}
-        vendor/stb/stb_image.cpp
+target_sources(GameEngine PRIVATE
+    ${GAMEENGINE_SOURCES}
+
+    vendor/stb/stb_image.cpp
+
+    # ImGui - compiled only once, inside GameEngine.dll
+    vendor/imgui/imgui.cpp
+    vendor/imgui/imgui_demo.cpp
+    vendor/imgui/imgui_draw.cpp
+    vendor/imgui/imgui_tables.cpp
+    vendor/imgui/imgui_widgets.cpp
+    vendor/imgui/backends/imgui_impl_glfw.cpp
+    vendor/imgui/backends/imgui_impl_opengl3.cpp
 )
 
-target_precompile_headers(GameEngine
-    PRIVATE
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/pch.h"
+target_precompile_headers(GameEngine PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/pch.h"
 )
 
 target_include_directories(GameEngine
     PUBLIC
         src
         vendor/stb
+        vendor/imgui
 )
 
 target_compile_definitions(GameEngine
-    PUBLIC 
+    PUBLIC
         GLM_ENABLE_EXPERIMENTAL
+
     PRIVATE
         GAMEENGINE_BUILD_DLL
 
@@ -82,8 +71,10 @@ target_compile_definitions(GameEngine
 
         $<$<CONFIG:Debug>:GAMEENGINE_DEBUG>
         $<$<CONFIG:Debug>:GAMEENGINE_ENABLE_ASSERTS>
-
         $<$<CONFIG:Release>:GAMEENGINE_RELEASE>
+
+        # Export ImGui symbols from GameEngine.dll
+        $<$<PLATFORM_ID:Windows>:IMGUI_API=__declspec\(dllexport\)>
 )
 
 target_link_libraries(GameEngine
@@ -91,13 +82,6 @@ target_link_libraries(GameEngine
         spdlog::spdlog
         glfw
         glad
-        imgui
         glm
         opengl32
-)
-
-add_custom_command(TARGET GameEngine POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "$<TARGET_FILE:GameEngine>"
-        "$<TARGET_FILE_DIR:Sandbox>"
 )

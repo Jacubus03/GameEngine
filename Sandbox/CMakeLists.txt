@@ -1,34 +1,47 @@
+# Sandbox executable
 add_executable(Sandbox)
 
 file(GLOB_RECURSE SANDBOX_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/*.h"
 )
 
-target_sources(Sandbox 
+target_sources(Sandbox PRIVATE
+    ${SANDBOX_SOURCES}
+)
+
+target_include_directories(Sandbox
     PRIVATE
-        ${SANDBOX_SOURCES}
+        src
 )
-
-add_custom_target(CopySandboxAssets ALL
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${CMAKE_CURRENT_SOURCE_DIR}/Assets"
-        "$<TARGET_FILE_DIR:Sandbox>/Assets"
-)
-
-add_dependencies(Sandbox CopySandboxAssets)
 
 target_compile_definitions(Sandbox
     PRIVATE
         GAMEENGINE_PLATFORM_WINDOWS
 )
 
-target_compile_definitions(GameEngine 
-    PRIVATE
-        $<$<CONFIG:Debug>:GAMEENGINE_DEBUG>
-        $<$<CONFIG:Release>:GAMEENGINE_RELEASE>
-)
+# Import ImGui symbols from GameEngine.dll
+if(WIN32)
+    target_compile_definitions(Sandbox
+        PRIVATE
+            "IMGUI_API=__declspec(dllimport)"
+    )
+endif()
 
 target_link_libraries(Sandbox
     PRIVATE
         GameEngine
+)
+
+# Copy engine DLL and assets next to Sandbox.exe
+add_custom_command(TARGET Sandbox POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "$<TARGET_FILE:GameEngine>"
+        "$<TARGET_FILE_DIR:Sandbox>"
+
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_CURRENT_SOURCE_DIR}/Assets"
+        "$<TARGET_FILE_DIR:Sandbox>/Assets"
+
+    COMMENT "Copying GameEngine.dll and Sandbox assets"
 )

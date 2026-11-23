@@ -1,8 +1,8 @@
 #include "SceneCameraController.h"
 
-#include "GameEngine/Input.h"
-#include "GameEngine/KeyCodes.h"
-#include "GameEngine/MouseButtonCodes.h"
+#include "GameEngine/Core/Input.h"
+#include "GameEngine/Core/KeyCodes.h"
+#include "GameEngine/Core/MouseButtonCodes.h"
 
 namespace GameEngine
 {

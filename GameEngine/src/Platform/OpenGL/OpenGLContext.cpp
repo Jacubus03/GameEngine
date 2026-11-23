@@ -1,7 +1,7 @@
 #include "OpenGLContext.h"
 
-#include "GameEngine/Core.h"
-//#include "GameEngine/Log.h"
+#include "GameEngine/Core/Core.h"
+//#include "GameEngine/Core/Log.h"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
