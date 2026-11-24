@@ -12,8 +12,15 @@ void Sandbox3D::OnAttach()
 {
     // Camera
     m_Camera = GameEngine::Ref<GameEngine::Camera>(new GameEngine::PerspectiveCamera(45.0f, 16.0f / 9.0f, 0.1f, 100.0f));
-    m_Camera->GetTransform().SetPosition(glm::vec3(0.0f, 0.0f, 3.0f));
+    m_Camera->transform.SetPosition(glm::vec3(0.0f, 0.0f, 3.0f));
     m_CameraController = GameEngine::Ref<GameEngine::SceneCameraController>(new GameEngine::SceneCameraController(*m_Camera));
+
+    m_Square = &m_Scene.CreateObject("Square");
+    m_Square->transform.SetPosition({ 0.0f, -0.3f, -1.0f });
+    m_Square->transform.SetRotation({ 0.0f, 0.0f, 45.0f });
+    m_Square->transform.SetScale({ 1.0f, 1.0f, 1.0f });
+
+    m_Triangle = &m_Scene.CreateObject("Triangle");
 
     // Triangle
     m_TriangleVA.reset(GameEngine::VertexArray::Create());
@@ -125,15 +132,9 @@ void Sandbox3D::OnUpdate(GameEngine::Timestep deltaTime)
     flatColorOpenGL->Bind();
     flatColorOpenGL->UploadUniformFloat3("u_Color",glm::vec3(0.9f));
 
-    // Square transform
-    glm::mat4 squareTransform =
-        glm::translate(glm::mat4(1.0f), m_SquarePosition) *
-        glm::mat4_cast(glm::quat(glm::radians(m_SquareRotation))) *
-        glm::scale(glm::mat4(1.0f), m_SquareScale);
-
     m_ErrorTexture->Bind();
 
-    GameEngine::Renderer::Submit(m_SquareVA, textureShader, squareTransform);
+    GameEngine::Renderer::Submit(m_SquareVA, textureShader, m_Square->transform.GetTransformMatrix());
     GameEngine::Renderer::Submit(m_TriangleVA, vertexColorShader);
 
     GameEngine::Renderer::EndScene();
@@ -147,9 +148,21 @@ void Sandbox3D::OnImGuiRender()
     ImGui::Separator();
 
     ImGui::Text("Square");
-    ImGui::DragFloat3("Position", &m_SquarePosition.x, 0.05f);
-    ImGui::DragFloat3("Rotation", &m_SquareRotation.x, 1.0f);
-    ImGui::DragFloat3( "Scale", &m_SquareScale.x, 0.05f);
+    ImGui::DragFloat3("Position", &m_Square->transform.GetPosition().x, 0.05f);
+    glm::vec3 rotation = glm::eulerAngles(m_Square->transform.GetRotation());
+    if (ImGui::DragFloat3("Rotation", &rotation.x, 1.0f))
+    {
+        m_Square->transform.SetRotation(glm::quat(rotation));
+    }
+    ImGui::DragFloat3("Scale", &m_Square->transform.GetScale().x, 0.05f);
+
+    ImGui::Separator();
+    ImGui::Text("Scene Objects");
+
+    for (const auto& object : m_Scene.GetObjects())
+    {
+        ImGui::BulletText("%s", object->GetName().c_str());
+    }
 
     ImGui::End();
 }

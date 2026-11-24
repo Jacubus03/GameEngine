@@ -20,7 +20,7 @@ namespace GameEngine
 			speed = 2.5f;
 
 		// Movement
-		glm::quat rotation = m_Camera.GetTransform().GetGlobalRotation();
+		glm::quat rotation = m_Camera.transform.GetGlobalRotation();
 
 		if (Input::IsKeyPressed(GE_KEY_W))
 			moveDirection += rotation * glm::vec3(0.0f, 0.0f, -1.0f);
@@ -38,10 +38,10 @@ namespace GameEngine
 		float rotationSpeed = 90.0f * (float)deltaTime;
 
 		if (Input::IsKeyPressed(GE_KEY_Q))
-			m_Camera.GetTransform().RotateGlobalY(rotationSpeed);
+			m_Camera.transform.RotateGlobalY(rotationSpeed);
 
 		if (Input::IsKeyPressed(GE_KEY_E))
-			m_Camera.GetTransform().RotateGlobalY(-rotationSpeed);
+			m_Camera.transform.RotateGlobalY(-rotationSpeed);
 
 		// Apply movement
 		if (moveDirection != glm::vec3(0.0f))
@@ -49,10 +49,10 @@ namespace GameEngine
 			moveDirection = glm::normalize(moveDirection);
 
 			glm::vec3 newPosition =
-				m_Camera.GetTransform().GetGlobalPosition()
+				m_Camera.transform.GetGlobalPosition()
 				+ moveDirection * speed * (float)deltaTime;
 
-			m_Camera.GetTransform().SetGlobalPosition(newPosition);
+			m_Camera.transform.SetGlobalPosition(newPosition);
 		}
 	}
 
@@ -87,9 +87,9 @@ namespace GameEngine
 		m_LastMouseX = e.GetX();
 		m_LastMouseY = e.GetY();
 
-		glm::vec3 rotation = m_Camera.GetTransform().GetEulerAngles();
-		m_Camera.GetTransform().RotateGlobalY(xOffset * m_MouseSensitivity);
-		m_Camera.GetTransform().RotateXClamped(yOffset * m_MouseSensitivity, -89.0f, 89.0f);
+		glm::vec3 rotation = m_Camera.transform.GetEulerAngles();
+		m_Camera.transform.RotateGlobalY(xOffset * m_MouseSensitivity);
+		m_Camera.transform.RotateX(yOffset * m_MouseSensitivity);
 
 		return false;
 	}

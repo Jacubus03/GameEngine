@@ -7,7 +7,6 @@
 
 namespace
 {
-    // (X, Y, Z) = (Pitch, Yaw, Roll)
     glm::vec3 QuaternionToEuler(const glm::quat& rotation)
     {
         const glm::quat q(
@@ -32,7 +31,12 @@ namespace
             euler.z
         ));
 
-        return glm::normalize(glm::quat(q.w, q.y, q.x, q.z));
+        return glm::normalize(glm::quat(
+            q.w,
+            q.y,
+            q.x,
+            q.z
+        ));
     }
 }
 
@@ -62,14 +66,14 @@ namespace GameEngine
     // Global Position
     glm::vec3 Transform::GetGlobalPosition() const
     {
-        return glm::vec3(GetGlobalTransform()[3]);
+        return glm::vec3(GetGlobalTransformMatrix()[3]);
     }
 
     void Transform::SetGlobalPosition(const glm::vec3& position)
     {
         if (m_Parent)
         {
-            glm::mat4 inverseParent = glm::inverse(m_Parent->GetGlobalTransform());
+            glm::mat4 inverseParent = glm::inverse(m_Parent->GetGlobalTransformMatrix());
             m_Position = glm::vec3(inverseParent * glm::vec4(position, 1.0f));
         }
         else
@@ -207,7 +211,7 @@ namespace GameEngine
         glm::mat4 worldTransform;
 
         if (keepWorldTransform)
-            worldTransform = GetGlobalTransform();
+            worldTransform = GetGlobalTransformMatrix();
 
         if (m_Parent)
             m_Parent->RemoveChild(this);
@@ -220,7 +224,7 @@ namespace GameEngine
         if (keepWorldTransform)
         {
             glm::mat4 localTransform = m_Parent
-                ? glm::inverse(m_Parent->GetGlobalTransform()) * worldTransform
+                ? glm::inverse(m_Parent->GetGlobalTransformMatrix()) * worldTransform
                 : worldTransform;
 
             SetTransform(localTransform);
@@ -238,7 +242,7 @@ namespace GameEngine
     }
 
     // Transform Matrices
-    glm::mat4 Transform::GetTransform() const
+    glm::mat4 Transform::GetTransformMatrix() const
     {
         glm::mat4 translation = glm::translate(glm::mat4(1.0f), m_Position);
         glm::mat4 rotation = glm::mat4_cast(m_Rotation);
@@ -247,12 +251,12 @@ namespace GameEngine
         return translation * rotation * scale;
     }
 
-    glm::mat4 Transform::GetGlobalTransform() const
+    glm::mat4 Transform::GetGlobalTransformMatrix() const
     {
         if (m_Parent)
-            return m_Parent->GetGlobalTransform() * GetTransform();
+            return m_Parent->GetGlobalTransformMatrix() * GetTransformMatrix();
 
-        return GetTransform();
+        return GetTransformMatrix();
     }
 
     void Transform::SetTransform(const glm::mat4& transform)

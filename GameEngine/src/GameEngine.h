@@ -23,6 +23,9 @@
 #include "GameEngine/Renderer/VertexArray.h"
 
 // Scene
+#include "GameEngine/Scene/Scene.h"
+#include "GameEngine/Scene/Object.h"
+#include "GameEngine/Scene/Transform.h"
 #include "GameEngine/Scene/Camera/Camera.h"
 #include "GameEngine/Scene/Camera/OrthographicCamera.h"
 #include "GameEngine/Scene/Camera/PerspectiveCamera.h"

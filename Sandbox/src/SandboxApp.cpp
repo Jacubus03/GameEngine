@@ -11,7 +11,7 @@ public:
 		: Layer("Example")
 	{
 		m_Camera = GameEngine::Ref<GameEngine::Camera>(new GameEngine::PerspectiveCamera(45.0f, 16.0f / 9.0f, 0.1f, 100.0f));
-		m_Camera->GetTransform().SetPosition(glm::vec3(0.0f, 0.0f, 3.0f));
+		m_Camera->transform.SetPosition(glm::vec3(0.0f, 0.0f, 3.0f));
 		m_CameraController = GameEngine::Ref<GameEngine::SceneCameraController>(new GameEngine::SceneCameraController(*m_Camera));
 
 		// Triangle

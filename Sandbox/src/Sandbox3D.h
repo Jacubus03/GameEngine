@@ -28,7 +28,7 @@ private:
     GameEngine::Ref<GameEngine::Camera> m_Camera;
     GameEngine::Ref<GameEngine::SceneCameraController> m_CameraController;
 
-    glm::vec3 m_SquarePosition{ 0.0f, -0.3f, -1.0f };
-    glm::vec3 m_SquareRotation{ 0.0f, 0.0f, 45.0f };
-    glm::vec3 m_SquareScale{ 1.0f };
+    GameEngine::Scene m_Scene;
+    GameEngine::Object* m_Square = nullptr;
+    GameEngine::Object* m_Triangle = nullptr;
 };

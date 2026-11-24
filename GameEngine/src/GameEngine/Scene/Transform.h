@@ -19,6 +19,7 @@ namespace GameEngine
         Transform& operator=(const Transform&) = delete;
 
         // Position
+        glm::vec3& GetPosition()  { return m_Position; }
         const glm::vec3& GetPosition() const { return m_Position; }
         void SetPosition(const glm::vec3& position);
 
@@ -26,6 +27,7 @@ namespace GameEngine
         void SetGlobalPosition(const glm::vec3& position);
 
         // Rotation
+        glm::quat& GetRotation() { return m_Rotation; }
         const glm::quat& GetRotation() const { return m_Rotation; }
         glm::vec3 GetEulerAngles() const;
 
@@ -53,6 +55,7 @@ namespace GameEngine
         void RotateXClamped(float angle, float minAngle, float maxAngle);
 
         // Scale
+        glm::vec3& GetScale() { return m_Scale; }
         const glm::vec3& GetScale() const { return m_Scale; }
         void SetScale(const glm::vec3& scale);
 
@@ -66,8 +69,8 @@ namespace GameEngine
         const std::vector<Transform*>& GetChildren() const { return m_Children; }
 
         // Transform Matrices
-        glm::mat4 GetTransform() const;
-        glm::mat4 GetGlobalTransform() const;
+        glm::mat4 GetTransformMatrix() const;
+        glm::mat4 GetGlobalTransformMatrix() const;
 
         // Callback
         void SetOnTransformChanged(std::function<void()> callback);

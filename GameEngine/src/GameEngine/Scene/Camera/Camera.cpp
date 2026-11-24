@@ -7,18 +7,12 @@ namespace GameEngine
     Camera::Camera(const glm::mat4& projection)
         : m_ProjectionMatrix(projection)
     {
-        m_Transform.SetOnTransformChanged([this]()
+        transform.SetOnTransformChanged([this]()
         {
             RecalculateViewMatrix();
         });
 
         RecalculateViewMatrix();
-    }
-
-    void Camera::RecalculateViewMatrix()
-    {
-        m_ViewMatrix = glm::inverse(m_Transform.GetGlobalTransform());
-        m_ViewProjectionMatrix = m_ProjectionMatrix * m_ViewMatrix;
     }
 
     void Camera::SetViewportSize(uint32_t width, uint32_t height)
@@ -30,6 +24,12 @@ namespace GameEngine
         m_ViewportHeight = height;
 
         RecalculateProjectionMatrix();
+    }
+
+    void Camera::RecalculateViewMatrix()
+    {
+        m_ViewMatrix = glm::inverse(transform.GetGlobalTransformMatrix());
+        m_ViewProjectionMatrix = m_ProjectionMatrix * m_ViewMatrix;
     }
 
     void Camera::RecalculateProjectionMatrix()
