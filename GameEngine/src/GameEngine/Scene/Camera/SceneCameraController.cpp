@@ -20,7 +20,7 @@ namespace GameEngine
 			speed = 2.5f;
 
 		// Movement
-		glm::quat rotation = m_Camera.transform.GetGlobalRotation();
+		glm::quat rotation = m_Camera.transform.GetLocalRotationQuaternion();
 
 		if (Input::IsKeyPressed(GE_KEY_W))
 			moveDirection += rotation * glm::vec3(0.0f, 0.0f, -1.0f);
@@ -87,9 +87,8 @@ namespace GameEngine
 		m_LastMouseX = e.GetX();
 		m_LastMouseY = e.GetY();
 
-		glm::vec3 rotation = m_Camera.transform.GetEulerAngles();
 		m_Camera.transform.RotateGlobalY(xOffset * m_MouseSensitivity);
-		m_Camera.transform.RotateX(yOffset * m_MouseSensitivity);
+		m_Camera.transform.RotateXClamped(yOffset * m_MouseSensitivity, -90.0f, 90.0f);
 
 		return false;
 	}

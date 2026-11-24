@@ -3,6 +3,27 @@
 #include <imgui.h>
 #include "Platform/OpenGL/OpenGLShader.h"
 
+namespace
+{
+    void DrawTransformInspector(GameEngine::Transform& transform)
+    {
+        // Position
+        glm::vec3 position = transform.GetPosition();
+        if (ImGui::DragFloat3("Position", &position.x, 0.05f))
+            transform.SetPosition(position);
+
+        // Rotation
+        glm::vec3 rotation = transform.GetEulerAngles();
+        if (ImGui::DragFloat3("Rotation", &rotation.x, 0.5f))
+            transform.SetRotation(rotation);
+
+        // Scale
+        glm::vec3 scale = transform.GetScale();
+        if (ImGui::DragFloat3("Scale", &scale.x, 0.05f))
+            transform.SetScale(scale);
+    }
+}
+
 Sandbox3D::Sandbox3D()
     : Layer("Sandbox3D")
 {
@@ -148,13 +169,7 @@ void Sandbox3D::OnImGuiRender()
     ImGui::Separator();
 
     ImGui::Text("Square");
-    ImGui::DragFloat3("Position", &m_Square->transform.GetPosition().x, 0.05f);
-    glm::vec3 rotation = glm::eulerAngles(m_Square->transform.GetRotation());
-    if (ImGui::DragFloat3("Rotation", &rotation.x, 1.0f))
-    {
-        m_Square->transform.SetRotation(glm::quat(rotation));
-    }
-    ImGui::DragFloat3("Scale", &m_Square->transform.GetScale().x, 0.05f);
+    DrawTransformInspector(m_Square->transform);
 
     ImGui::Separator();
     ImGui::Text("Scene Objects");
