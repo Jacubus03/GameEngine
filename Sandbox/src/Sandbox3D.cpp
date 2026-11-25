@@ -165,8 +165,55 @@ void Sandbox3D::OnUpdate(GameEngine::Timestep deltaTime)
 
 void Sandbox3D::OnImGuiRender()
 {
+    BeginDockspace();
     DrawHierarchyPanel();
     DrawInspectorPanel();
+
+    ImGui::Begin("Scene");
+
+    ImGui::End();
+}
+
+void Sandbox3D::BeginDockspace()
+{
+    static bool dockspaceOpen = true;
+
+    ImGuiWindowFlags windowFlags =
+        ImGuiWindowFlags_MenuBar |
+        ImGuiWindowFlags_NoDocking;
+
+    const ImGuiViewport* viewport = ImGui::GetMainViewport();
+
+    ImGui::SetNextWindowPos(viewport->WorkPos);
+    ImGui::SetNextWindowSize(viewport->WorkSize);
+    ImGui::SetNextWindowViewport(viewport->ID);
+
+    windowFlags |= ImGuiWindowFlags_NoTitleBar;
+    windowFlags |= ImGuiWindowFlags_NoCollapse;
+    windowFlags |= ImGuiWindowFlags_NoResize;
+    windowFlags |= ImGuiWindowFlags_NoMove;
+    windowFlags |= ImGuiWindowFlags_NoBringToFrontOnFocus;
+    windowFlags |= ImGuiWindowFlags_NoNavFocus;
+
+    windowFlags |= ImGuiWindowFlags_NoBackground;
+
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+
+    ImGui::Begin("Dockspace", &dockspaceOpen, windowFlags);
+
+    ImGui::PopStyleVar(3);
+
+    const ImGuiID dockspaceID = ImGui::GetID("MainDockspace");
+
+    ImGui::DockSpace(
+        dockspaceID,
+        ImVec2(0.0f, 0.0f),
+        ImGuiDockNodeFlags_None
+    );
+
+    ImGui::End();
 }
 
 void Sandbox3D::DrawHierarchyPanel()

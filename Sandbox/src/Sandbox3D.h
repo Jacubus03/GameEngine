@@ -18,12 +18,11 @@ public:
     void OnEvent(GameEngine::Event& event) override;
 
 private:
-    void InitializeScene();
-
+    void BeginDockspace();
     void DrawHierarchyPanel();
-    void DrawObjectNode(GameEngine::Object& object);
     void DrawInspectorPanel();
 
+    void DrawObjectNode(GameEngine::Object& object);
     void DestroyObjectRecursive(GameEngine::Object& object);
 
 private:
