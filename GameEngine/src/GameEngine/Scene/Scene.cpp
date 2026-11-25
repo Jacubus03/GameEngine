@@ -23,4 +23,15 @@ namespace GameEngine
         if (it != m_Objects.end())
             m_Objects.erase(it);
     }
+
+    Object* Scene::FindObject(const Transform* transform) const
+    {
+        for (const auto& object : m_Objects)
+        {
+            if (&object->transform == transform)
+                return object.get();
+        }
+
+        return nullptr;
+    }
 }

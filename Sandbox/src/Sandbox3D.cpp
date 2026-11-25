@@ -157,8 +157,8 @@ void Sandbox3D::OnUpdate(GameEngine::Timestep deltaTime)
 
     m_ErrorTexture->Bind();
 
-    GameEngine::Renderer::Submit(m_SquareVA, textureShader, m_Square->transform.GetTransformMatrix());
-    GameEngine::Renderer::Submit(m_TriangleVA, vertexColorShader, m_Triangle->transform.GetTransformMatrix());
+    if (m_Square) GameEngine::Renderer::Submit(m_SquareVA, textureShader, m_Square->transform.GetGlobalTransformMatrix());
+    if (m_Triangle) GameEngine::Renderer::Submit(m_TriangleVA, vertexColorShader, m_Triangle->transform.GetGlobalTransformMatrix());
 
     GameEngine::Renderer::EndScene();
 }
@@ -173,25 +173,157 @@ void Sandbox3D::DrawHierarchyPanel()
 {
     ImGui::Begin("Hierarchy");
 
+    // Only root objects are drawn here, children are drawn recursively by their parent.
     for (const auto& object : m_Scene.GetObjects())
     {
-        GameEngine::Object* current = object.get();
-
-        // The pointer is used as ID, so objects with the same name do not collide.
-        ImGui::PushID(current);
-
-        const bool isSelected = (m_SelectedObject == current);
-        if (ImGui::Selectable(current->GetName().c_str(), isSelected))
-            m_SelectedObject = current;
-
-        ImGui::PopID();
+        if (!object->transform.GetParent())
+            DrawObjectNode(*object);
     }
 
-    // Click on empty space clears the selection.
-    if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && ImGui::IsWindowHovered() && !ImGui::IsAnyItemHovered())
-        m_SelectedObject = nullptr;
+    // Empty area below the tree: click = deselect, drop = unparent, right click = menu.
+    const ImVec2 available = ImGui::GetContentRegionAvail();
+    if (available.x > 1.0f && available.y > 1.0f)
+    {
+        ImGui::InvisibleButton("##hierarchy_empty_area", available);
+
+        if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
+            m_SelectedObject = nullptr;
+
+        if (ImGui::BeginDragDropTarget())
+        {
+            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("SCENE_OBJECT"))
+            {
+                GameEngine::Object* dragged = *static_cast<GameEngine::Object* const*>(payload->Data);
+                m_PendingActions.push_back([dragged]()
+                {
+                    dragged->transform.SetParent(nullptr, true);
+                });
+            }
+            ImGui::EndDragDropTarget();
+        }
+
+        if (ImGui::BeginPopupContextItem("##hierarchy_context"))
+        {
+            if (ImGui::MenuItem("Create Empty"))
+            {
+                m_PendingActions.push_back([this]()
+                {
+                    m_SelectedObject = &m_Scene.CreateObject("Empty");
+                });
+            }
+            ImGui::EndPopup();
+        }
+    }
 
     ImGui::End();
+
+    for (auto& action : m_PendingActions)
+        action();
+    m_PendingActions.clear();
+}
+
+void Sandbox3D::DrawObjectNode(GameEngine::Object& object)
+{
+    using namespace GameEngine;
+
+    const std::vector<Transform*>& children = object.transform.GetChildren();
+
+    ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
+
+    if (children.empty())
+        flags |= ImGuiTreeNodeFlags_Leaf;
+
+    if (m_SelectedObject == &object)
+        flags |= ImGuiTreeNodeFlags_Selected;
+
+    const bool open = ImGui::TreeNodeEx(&object, flags, "%s", object.GetName().c_str());
+
+    if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
+        m_SelectedObject = &object;
+
+    if (ImGui::BeginDragDropSource())
+    {
+        Object* dragged = &object;
+        ImGui::SetDragDropPayload("SCENE_OBJECT", &dragged, sizeof(Object*));
+        ImGui::TextUnformatted(object.GetName().c_str());
+        ImGui::EndDragDropSource();
+    }
+
+    if (ImGui::BeginDragDropTarget())
+    {
+        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("SCENE_OBJECT"))
+        {
+            Object* dragged = *static_cast<Object* const*>(payload->Data);
+            Object* newParent = &object;
+
+            m_PendingActions.push_back([dragged, newParent]()
+            {
+                dragged->transform.SetParent(&newParent->transform, true);
+            });
+        }
+        ImGui::EndDragDropTarget();
+    }
+
+    if (ImGui::BeginPopupContextItem())
+    {
+        Object* target = &object;
+
+        if (ImGui::MenuItem("Add Child"))
+        {
+            m_PendingActions.push_back([this, target]()
+            {
+                Object& child = m_Scene.CreateObject("Empty");
+                child.transform.SetParent(&target->transform);
+                m_SelectedObject = &child;
+            });
+        }
+
+        if (object.transform.GetParent() && ImGui::MenuItem("Unparent"))
+        {
+            m_PendingActions.push_back([target]()
+            {
+                target->transform.SetParent(nullptr, true);
+            });
+        }
+
+        if (ImGui::MenuItem("Delete"))
+        {
+            m_PendingActions.push_back([this, target]()
+            {
+                DestroyObjectRecursive(*target);
+            });
+        }
+
+        ImGui::EndPopup();
+    }
+
+    if (open)
+    {
+        for (Transform* childTransform : children)
+        {
+            if (Object* child = m_Scene.FindObject(childTransform))
+                DrawObjectNode(*child);
+        }
+
+        ImGui::TreePop();
+    }
+}
+
+void Sandbox3D::DestroyObjectRecursive(GameEngine::Object& object)
+{
+    const std::vector<GameEngine::Transform*> children = object.transform.GetChildren();
+
+    for (GameEngine::Transform* childTransform : children)
+    {
+        if (GameEngine::Object* child = m_Scene.FindObject(childTransform))
+            DestroyObjectRecursive(*child);
+    }
+
+    if (m_SelectedObject == &object) m_SelectedObject = nullptr;
+    if (m_Square == &object)         m_Square = nullptr;
+    if (m_Triangle == &object)       m_Triangle = nullptr;
+
+    m_Scene.DestroyObject(object);
 }
 
 void Sandbox3D::DrawInspectorPanel()
@@ -206,8 +338,18 @@ void Sandbox3D::DrawInspectorPanel()
         if (ImGui::InputText("Name", nameBuffer, sizeof(nameBuffer)))
             m_SelectedObject->SetName(nameBuffer);
 
+        if (GameEngine::Transform* parentTransform = m_SelectedObject->transform.GetParent())
+        {
+            if (GameEngine::Object* parent = m_Scene.FindObject(parentTransform))
+                ImGui::Text("Parent: %s", parent->GetName().c_str());
+        }
+        else
+        {
+            ImGui::TextDisabled("Parent: none");
+        }
+
         ImGui::Separator();
-        ImGui::Text("Transform");
+        ImGui::Text("Transform (local)");
         DrawTransformInspector(m_SelectedObject->transform);
     }
     else

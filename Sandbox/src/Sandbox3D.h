@@ -2,6 +2,9 @@
 
 #include <GameEngine.h>
 
+#include <functional>
+#include <vector>
+
 class Sandbox3D : public GameEngine::Layer
 {
 public:
@@ -18,7 +21,10 @@ private:
     void InitializeScene();
 
     void DrawHierarchyPanel();
+    void DrawObjectNode(GameEngine::Object& object);
     void DrawInspectorPanel();
+
+    void DestroyObjectRecursive(GameEngine::Object& object);
 
 private:
     GameEngine::ShaderLibrary m_ShaderLibrary;
@@ -37,4 +43,7 @@ private:
 
     // Object currently selected in the Hierarchy panel (nullptr = nothing selected)
     GameEngine::Object* m_SelectedObject = nullptr;
+
+    // Changes requested by the UI (reparent, create, delete).
+    std::vector<std::function<void()>> m_PendingActions;
 };

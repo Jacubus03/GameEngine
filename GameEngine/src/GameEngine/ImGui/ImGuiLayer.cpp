@@ -79,8 +79,8 @@ namespace GameEngine
 
 	void ImGuiLayer::OnImGuiRender()
 	{
-		static bool show = true;
-		ImGui::ShowDemoWindow(&show);
+		//static bool show = false;
+		//ImGui::ShowDemoWindow(&show);
 	}
 
     void ImGuiLayer::OnEvent(Event& event)

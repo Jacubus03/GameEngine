@@ -21,6 +21,8 @@ namespace GameEngine
         Object& CreateObject(const std::string& name = "Object");
         void DestroyObject(Object& object);
 
+        Object* FindObject(const Transform* transform) const;
+
         const std::vector<std::unique_ptr<Object>>& GetObjects() const
         {
             return m_Objects;
