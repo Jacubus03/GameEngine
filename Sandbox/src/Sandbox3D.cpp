@@ -1,6 +1,8 @@
 #include "Sandbox3D.h"
 
 #include <imgui.h>
+
+#include <cstdio>
 #include "Platform/OpenGL/OpenGLShader.h"
 
 namespace
@@ -156,27 +158,61 @@ void Sandbox3D::OnUpdate(GameEngine::Timestep deltaTime)
     m_ErrorTexture->Bind();
 
     GameEngine::Renderer::Submit(m_SquareVA, textureShader, m_Square->transform.GetTransformMatrix());
-    GameEngine::Renderer::Submit(m_TriangleVA, vertexColorShader);
+    GameEngine::Renderer::Submit(m_TriangleVA, vertexColorShader, m_Triangle->transform.GetTransformMatrix());
 
     GameEngine::Renderer::EndScene();
 }
 
 void Sandbox3D::OnImGuiRender()
 {
-    ImGui::Begin("Sandbox3D");
+    DrawHierarchyPanel();
+    DrawInspectorPanel();
+}
 
-    ImGui::Text("Camera");
-    ImGui::Separator();
-
-    ImGui::Text("Square");
-    DrawTransformInspector(m_Square->transform);
-
-    ImGui::Separator();
-    ImGui::Text("Scene Objects");
+void Sandbox3D::DrawHierarchyPanel()
+{
+    ImGui::Begin("Hierarchy");
 
     for (const auto& object : m_Scene.GetObjects())
     {
-        ImGui::BulletText("%s", object->GetName().c_str());
+        GameEngine::Object* current = object.get();
+
+        // The pointer is used as ID, so objects with the same name do not collide.
+        ImGui::PushID(current);
+
+        const bool isSelected = (m_SelectedObject == current);
+        if (ImGui::Selectable(current->GetName().c_str(), isSelected))
+            m_SelectedObject = current;
+
+        ImGui::PopID();
+    }
+
+    // Click on empty space clears the selection.
+    if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && ImGui::IsWindowHovered() && !ImGui::IsAnyItemHovered())
+        m_SelectedObject = nullptr;
+
+    ImGui::End();
+}
+
+void Sandbox3D::DrawInspectorPanel()
+{
+    ImGui::Begin("Inspector");
+
+    if (m_SelectedObject)
+    {
+        char nameBuffer[128];
+        std::snprintf(nameBuffer, sizeof(nameBuffer), "%s", m_SelectedObject->GetName().c_str());
+
+        if (ImGui::InputText("Name", nameBuffer, sizeof(nameBuffer)))
+            m_SelectedObject->SetName(nameBuffer);
+
+        ImGui::Separator();
+        ImGui::Text("Transform");
+        DrawTransformInspector(m_SelectedObject->transform);
+    }
+    else
+    {
+        ImGui::TextDisabled("No object selected");
     }
 
     ImGui::End();

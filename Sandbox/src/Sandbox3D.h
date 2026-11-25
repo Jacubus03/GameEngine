@@ -17,6 +17,9 @@ public:
 private:
     void InitializeScene();
 
+    void DrawHierarchyPanel();
+    void DrawInspectorPanel();
+
 private:
     GameEngine::ShaderLibrary m_ShaderLibrary;
 
@@ -31,4 +34,7 @@ private:
     GameEngine::Scene m_Scene;
     GameEngine::Object* m_Square = nullptr;
     GameEngine::Object* m_Triangle = nullptr;
+
+    // Object currently selected in the Hierarchy panel (nullptr = nothing selected)
+    GameEngine::Object* m_SelectedObject = nullptr;
 };
