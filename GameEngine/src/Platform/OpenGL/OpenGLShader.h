@@ -21,6 +21,13 @@ namespace GameEngine
 
         virtual const std::string& GetName() const override { return m_Name; };
 
+        virtual void SetInt(const std::string& name, int value) override { UploadUniformInt(name, value); }
+        virtual void SetFloat(const std::string& name, float value) override { UploadUniformFloat(name, value); }
+        virtual void SetFloat3(const std::string& name, const glm::vec3& value) override { UploadUniformFloat3(name, value); }
+        virtual void SetFloat4(const std::string& name, const glm::vec4& value) override { UploadUniformFloat4(name, value); }
+        virtual void SetMat3(const std::string& name, const glm::mat3& value) override { UploadUniformMat3(name, value); }
+        virtual void SetMat4(const std::string& name, const glm::mat4& value) override { UploadUniformMat4(name, value); }
+
         void UploadUniformInt(const std::string& name, const int value);
 
         void UploadUniformFloat(const std::string& name, const float value);
@@ -34,8 +41,10 @@ namespace GameEngine
         std::string ReadFile(const std::string& filepath);
         std::unordered_map<GLenum, std::string> PreProcess(const std::string& source);
         void Compile(std::unordered_map<GLenum, std::string>& shaderSources);
+        GLint GetUniformLocation(const std::string& name);
     private:
         uint32_t m_RendererID;
         std::string m_Name;
+        std::unordered_map<std::string, GLint> m_UniformLocationCache;
     };
 }

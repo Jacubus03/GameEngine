@@ -4,6 +4,7 @@
 #include <string>
 #include <functional>
 #include <sstream>
+#include <concepts>
 
 namespace GameEngine
 {
@@ -50,6 +51,12 @@ namespace GameEngine
 		bool m_Handled = false;
 	};
 
+	template<typename T>
+	concept DispatchableEvent = std::derived_from<T, Event> && requires
+	{
+		{ T::GetStaticType() } -> std::same_as<EventType>;
+	};
+
 	class EventDispatcher
 	{
 		template<typename T>
@@ -58,7 +65,7 @@ namespace GameEngine
 		EventDispatcher(Event& event)
 			: m_Event(event) { }
 
-		template<typename T>
+		template<DispatchableEvent T>
 		bool Dispatch(EventFn<T> func)
 		{
 			if (m_Event.GetEventType() == T::GetStaticType())

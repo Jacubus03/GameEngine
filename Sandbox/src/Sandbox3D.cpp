@@ -3,7 +3,6 @@
 #include <imgui.h>
 
 #include <cstdio>
-#include "Platform/OpenGL/OpenGLShader.h"
 
 namespace
 {
@@ -61,7 +60,7 @@ void Sandbox3D::OnAttach()
            0.0f,  0.5f, 0.0f,       0.0f, 0.0f, 1.0f, 1.0f
     };
 
-    GameEngine::Ref<GameEngine::VertexBuffer> triangleVB(GameEngine::VertexBuffer::Create(triangleVertices, sizeof(triangleVertices)));
+    GameEngine::Ref<GameEngine::VertexBuffer> triangleVB(GameEngine::VertexBuffer::Create(triangleVertices));
 
     GameEngine::BufferLayout triangleLayout = {
         { GameEngine::ShaderDataType::Float3, "a_Position" },
@@ -73,7 +72,7 @@ void Sandbox3D::OnAttach()
 
     uint32_t triangleIndices[] = { 0, 1, 2 };
 
-    GameEngine::Ref<GameEngine::IndexBuffer> triangleIB(GameEngine::IndexBuffer::Create(triangleIndices, sizeof(triangleIndices) / sizeof(uint32_t)));
+    GameEngine::Ref<GameEngine::IndexBuffer> triangleIB(GameEngine::IndexBuffer::Create(triangleIndices));
 
     m_TriangleVA->SetIndexBuffer(triangleIB);
 
@@ -88,12 +87,7 @@ void Sandbox3D::OnAttach()
           -0.75f,  0.75f, 0.0f,       0.0f, 1.0f
     };
 
-    GameEngine::Ref<GameEngine::VertexBuffer> squareVB(
-        GameEngine::VertexBuffer::Create(
-            squareVertices,
-            sizeof(squareVertices)
-        )
-    );
+    GameEngine::Ref<GameEngine::VertexBuffer> squareVB(GameEngine::VertexBuffer::Create(squareVertices));
 
     GameEngine::BufferLayout squareLayout = {
         { GameEngine::ShaderDataType::Float3, "a_Position" },
@@ -108,12 +102,7 @@ void Sandbox3D::OnAttach()
         2, 3, 0
     };
 
-    GameEngine::Ref<GameEngine::IndexBuffer> squareIB(
-        GameEngine::IndexBuffer::Create(
-            squareIndices,
-            sizeof(squareIndices) / sizeof(uint32_t)
-        )
-    );
+    GameEngine::Ref<GameEngine::IndexBuffer> squareIB(GameEngine::IndexBuffer::Create(squareIndices));
 
     m_SquareVA->SetIndexBuffer(squareIB);
 
@@ -126,10 +115,8 @@ void Sandbox3D::OnAttach()
     // Texture
     m_ErrorTexture = GameEngine::Texture2D::Create("Assets/Textures/error_texture.png");
 
-    auto openGLShader = std::dynamic_pointer_cast<GameEngine::OpenGLShader>(textureShader);
-
-    openGLShader->Bind();
-    openGLShader->UploadUniformInt("u_Texture", 0);
+    textureShader->Bind();
+    textureShader->SetInt("u_Texture", 0);
 }
 
 void Sandbox3D::OnDetach()
@@ -168,11 +155,8 @@ void Sandbox3D::OnUpdate(GameEngine::Timestep deltaTime)
     auto flatColorShader = m_ShaderLibrary.Get("FlatColor");
     auto textureShader = m_ShaderLibrary.Get("Texture");
 
-    auto flatColorOpenGL =
-        std::dynamic_pointer_cast<GameEngine::OpenGLShader>(flatColorShader);
-
-    flatColorOpenGL->Bind();
-    flatColorOpenGL->UploadUniformFloat3("u_Color",glm::vec3(0.9f));
+    flatColorShader->Bind();
+    flatColorShader->SetFloat3("u_Color", glm::vec3(0.9f));
 
     m_ErrorTexture->Bind();
 

@@ -5,7 +5,7 @@
 
 namespace GameEngine
 {
-	VertexBuffer* VertexBuffer::Create(float* vertices, uint32_t size)
+	VertexBuffer* VertexBuffer::Create(const float* vertices, uint32_t size)
 	{
 		switch (Renderer::GetAPI())
 		{
@@ -17,7 +17,7 @@ namespace GameEngine
 		return nullptr;
 	}
 
-	IndexBuffer* IndexBuffer::Create(uint32_t* indices, uint32_t size)
+	IndexBuffer* IndexBuffer::Create(const uint32_t* indices, uint32_t size)
 	{
 		switch (Renderer::GetAPI())
 		{
@@ -27,5 +27,15 @@ namespace GameEngine
 
 		GE_LOG_CORE_ASSERT(false, "Unknown RendererAPI!");
 		return nullptr;
+	}
+
+	VertexBuffer* VertexBuffer::Create(std::span<const float> vertices)
+	{
+		return Create(vertices.data(), (uint32_t)vertices.size_bytes());
+	}
+
+	IndexBuffer* IndexBuffer::Create(std::span<const uint32_t> indices)
+	{
+		return Create(indices.data(), (uint32_t)indices.size());
 	}
 }
