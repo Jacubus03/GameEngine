@@ -19,6 +19,7 @@ public:
 
 private:
     void BeginDockspace();
+    void DrawScenePanel();
     void DrawHierarchyPanel();
     void DrawInspectorPanel();
 
@@ -33,6 +34,8 @@ private:
 
     GameEngine::Ref<GameEngine::Texture2D> m_ErrorTexture;
 
+    GameEngine::Ref<GameEngine::Framebuffer> m_Framebuffer;
+
     GameEngine::Ref<GameEngine::Camera> m_Camera;
     GameEngine::Ref<GameEngine::SceneCameraController> m_CameraController;
 
@@ -42,6 +45,11 @@ private:
 
     // Object currently selected in the Hierarchy panel (nullptr = nothing selected)
     GameEngine::Object* m_SelectedObject = nullptr;
+
+    // Scene window
+    glm::vec2 m_SceneSize{ 0.0f, 0.0f };
+    bool m_SceneFocused = false;
+    bool m_SceneHovered = false;
 
     // Changes requested by the UI (reparent, create, delete).
     std::vector<std::function<void()>> m_PendingActions;

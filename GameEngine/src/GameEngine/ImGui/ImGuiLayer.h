@@ -21,6 +21,8 @@ namespace GameEngine
 		void End();
 
         void OnEvent(Event& event) override;
+
+        void BlockEvents(bool block) { m_BlockEvents = block; }
     private:
         bool OnMouseButtonPressedEvent(MouseButtonPressedEvent& e);
         bool OnMouseButtonReleasedEvent(MouseButtonReleasedEvent& e);
@@ -32,5 +34,6 @@ namespace GameEngine
         bool OnWindowResizeEvent(WindowResizeEvent& e);
     private:
         Window* m_Window;
+        bool m_BlockEvents = true;
     };
 }

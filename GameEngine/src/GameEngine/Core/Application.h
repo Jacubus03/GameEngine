@@ -32,6 +32,7 @@ namespace GameEngine
 		void PushOverlay(Layer* overlay);
 
 		inline Window& GetWindow() { return *m_Window; }
+		inline ImGuiLayer& GetImGuiLayer() { return *m_ImGuiLayer; }
 
 		inline static Application& Get() { return *s_Instance; }
 	private:

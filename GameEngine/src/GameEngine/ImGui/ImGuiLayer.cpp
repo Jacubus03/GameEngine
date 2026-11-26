@@ -100,55 +100,53 @@ namespace GameEngine
     {
         ImGuiIO& io = ImGui::GetIO();
 
-        return io.WantCaptureMouse;
+        return m_BlockEvents && io.WantCaptureMouse;
     }
 
     bool ImGuiLayer::OnMouseButtonReleasedEvent(MouseButtonReleasedEvent& e)
     {
         ImGuiIO& io = ImGui::GetIO();
 
-        return io.WantCaptureMouse;
+        return m_BlockEvents && io.WantCaptureMouse;
     }
 
     bool ImGuiLayer::OnMouseMovedEvent(MouseMovedEvent& e)
     {
         ImGuiIO& io = ImGui::GetIO();
 
-        return io.WantCaptureMouse;
+        return m_BlockEvents && io.WantCaptureMouse;
     }
 
     bool ImGuiLayer::OnMouseScrolledEvent(MouseScrolledEvent& e)
     {
         ImGuiIO& io = ImGui::GetIO();
 
-        return io.WantCaptureMouse;
+        return m_BlockEvents && io.WantCaptureMouse;
     }
 
     bool ImGuiLayer::OnKeyPressedEvent(KeyPressedEvent& e)
     {
         ImGuiIO& io = ImGui::GetIO();
 
-        return io.WantCaptureKeyboard;
+        return m_BlockEvents && io.WantCaptureKeyboard;
     }
 
     bool ImGuiLayer::OnKeyReleasedEvent(KeyReleasedEvent& e)
     {
         ImGuiIO& io = ImGui::GetIO();
 
-        return io.WantCaptureKeyboard;
+        return m_BlockEvents && io.WantCaptureKeyboard;
     }
 
     bool ImGuiLayer::OnKeyTypedEvent(KeyTypedEvent& e)
     {
         ImGuiIO& io = ImGui::GetIO();
 
-        return io.WantCaptureKeyboard;
+        return m_BlockEvents && io.WantCaptureKeyboard;
     }
 
     bool ImGuiLayer::OnWindowResizeEvent(WindowResizeEvent& e)
     {
-        glViewport(0, 0, e.GetWidth(), e.GetHeight());
-
         return false;
     }
 }

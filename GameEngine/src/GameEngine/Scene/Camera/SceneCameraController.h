@@ -22,7 +22,6 @@ namespace GameEngine
 	private:
 		bool OnMouseMoved(MouseMovedEvent& e);
 		bool OnMouseScrolled(MouseScrolledEvent& e);
-		bool OnWindowResized(WindowResizeEvent& e);
 
 	private:
 		Camera& m_Camera;

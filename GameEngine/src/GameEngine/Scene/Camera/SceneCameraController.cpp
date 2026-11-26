@@ -62,7 +62,6 @@ namespace GameEngine
 
 		dispatcher.Dispatch<MouseMovedEvent>(GE_BIND_EVENT_FN(SceneCameraController::OnMouseMoved));
 		dispatcher.Dispatch<MouseScrolledEvent>(GE_BIND_EVENT_FN(SceneCameraController::OnMouseScrolled));
-		dispatcher.Dispatch<WindowResizeEvent>(GE_BIND_EVENT_FN(SceneCameraController::OnWindowResized));
 	}
 
 	bool SceneCameraController::OnMouseMoved(MouseMovedEvent& e)
@@ -95,12 +94,6 @@ namespace GameEngine
 
 	bool SceneCameraController::OnMouseScrolled(MouseScrolledEvent& e)
 	{
-		return false;
-	}
-
-	bool SceneCameraController::OnWindowResized(WindowResizeEvent& e)
-	{
-		m_Camera.SetViewportSize(e.GetWidth(), e.GetHeight());
 		return false;
 	}
 }

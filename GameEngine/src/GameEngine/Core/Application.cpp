@@ -57,6 +57,10 @@ namespace GameEngine
 			Timestep timestep = time - m_LastFrameTime;
 			m_LastFrameTime = time;
 
+			RenderCommand::SetViewport(0, 0, m_Window->GetWidth(), m_Window->GetHeight());
+			RenderCommand::SetClearColor(glm::vec4(0.1f, 0.1f, 0.1f, 1.0f));
+			RenderCommand::Clear();
+
 			for (Layer* layer : m_LayerStack)
 				layer->OnUpdate(timestep);
 

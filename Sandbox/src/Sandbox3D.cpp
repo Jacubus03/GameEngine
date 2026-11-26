@@ -33,6 +33,12 @@ Sandbox3D::Sandbox3D()
 
 void Sandbox3D::OnAttach()
 {
+    // Framebuffer
+    GameEngine::FramebufferSpecification framebufferSpecification;
+    framebufferSpecification.Width = 1280;
+    framebufferSpecification.Height = 720;
+    m_Framebuffer = GameEngine::Framebuffer::Create(framebufferSpecification);
+
     // Camera
     m_Camera = GameEngine::Ref<GameEngine::Camera>(new GameEngine::PerspectiveCamera(45.0f, 16.0f / 9.0f, 0.1f, 100.0f));
     m_Camera->transform.SetPosition(glm::vec3(0.0f, 0.0f, 3.0f));
@@ -133,10 +139,23 @@ void Sandbox3D::OnDetach()
 
 void Sandbox3D::OnUpdate(GameEngine::Timestep deltaTime)
 {
+    // Resize
+    const GameEngine::FramebufferSpecification specification = m_Framebuffer->GetSpecification();
+
+    if (m_SceneSize.x > 0.0f && m_SceneSize.y > 0.0f &&
+        (specification.Width != (uint32_t)m_SceneSize.x || specification.Height != (uint32_t)m_SceneSize.y))
+    {
+        m_Framebuffer->Resize((uint32_t)m_SceneSize.x, (uint32_t)m_SceneSize.y);
+        m_Camera->SetViewportSize((uint32_t)m_SceneSize.x, (uint32_t)m_SceneSize.y);
+    }
+
     // Update
-    m_CameraController->OnUpdate(deltaTime);
+    if (m_SceneFocused)
+        m_CameraController->OnUpdate(deltaTime);
 
     // Render
+    m_Framebuffer->Bind();
+
     GameEngine::RenderCommand::SetClearColor(
         glm::vec4(0.1f, 0.1f, 0.1f, 1.0f)
     );
@@ -161,15 +180,34 @@ void Sandbox3D::OnUpdate(GameEngine::Timestep deltaTime)
     if (m_Triangle) GameEngine::Renderer::Submit(m_TriangleVA, vertexColorShader, m_Triangle->transform.GetGlobalTransformMatrix());
 
     GameEngine::Renderer::EndScene();
+
+    m_Framebuffer->Unbind();
 }
 
 void Sandbox3D::OnImGuiRender()
 {
     BeginDockspace();
+    DrawScenePanel();
     DrawHierarchyPanel();
     DrawInspectorPanel();
+}
 
+void Sandbox3D::DrawScenePanel()
+{
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
     ImGui::Begin("Scene");
+    ImGui::PopStyleVar();
+
+    m_SceneFocused = ImGui::IsWindowFocused();
+    m_SceneHovered = ImGui::IsWindowHovered();
+
+    GameEngine::Application::Get().GetImGuiLayer().BlockEvents(!m_SceneFocused || !m_SceneHovered);
+
+    const ImVec2 size = ImGui::GetContentRegionAvail();
+    m_SceneSize = { size.x, size.y };
+
+    const uint64_t textureID = m_Framebuffer->GetColorAttachmentRendererID();
+    ImGui::Image((ImTextureID)textureID, size, ImVec2(0.0f, 1.0f), ImVec2(1.0f, 0.0f));
 
     ImGui::End();
 }
