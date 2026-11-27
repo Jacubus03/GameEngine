@@ -2,6 +2,8 @@
 
 #include <GameEngine.h>
 
+#include "AssetBrowserPanel.h"
+
 #include <functional>
 #include <string>
 #include <vector>
@@ -19,6 +21,8 @@ public:
     void OnEvent(GameEngine::Event& event) override;
 
 private:
+    bool OnWindowDrop(GameEngine::WindowDropEvent& event);
+
     void BeginDockspace();
     void DrawScenePanel();
     void DrawHierarchyPanel();
@@ -51,6 +55,8 @@ private:
 
     GameEngine::Ref<GameEngine::Camera> m_Camera;
     GameEngine::Ref<GameEngine::SceneCameraController> m_CameraController;
+
+    AssetBrowserPanel m_AssetBrowser;
 
     GameEngine::Scene m_Scene;
     GameEngine::Object* m_Square = nullptr;

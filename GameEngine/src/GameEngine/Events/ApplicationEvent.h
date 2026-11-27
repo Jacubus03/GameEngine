@@ -2,6 +2,9 @@
 
 #include "Event.h"
 
+#include <string>
+#include <vector>
+
 namespace GameEngine
 {
 	class GAMEENGINE_API WindowResizeEvent : public Event
@@ -34,6 +37,28 @@ namespace GameEngine
 
 		EVENT_CLASS_TYPE(WindowClose)
 		EVENT_CLASS_CATEGORY(EventCategoryApplication)
+	};
+
+	class GAMEENGINE_API WindowDropEvent : public Event
+	{
+	public:
+		WindowDropEvent(std::vector<std::string> paths)
+			: m_Paths(std::move(paths)) {
+		}
+
+		const std::vector<std::string>& GetPaths() const { return m_Paths; }
+
+		std::string ToString() const override
+		{
+			std::stringstream ss;
+			ss << "WindowDropEvent: " << m_Paths.size() << " file(s)";
+			return ss.str();
+		}
+
+		EVENT_CLASS_TYPE(WindowDrop)
+		EVENT_CLASS_CATEGORY(EventCategoryApplication)
+	private:
+		std::vector<std::string> m_Paths;
 	};
 
 	class GAMEENGINE_API AppTickEvent : public Event

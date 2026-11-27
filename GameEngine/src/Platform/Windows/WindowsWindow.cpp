@@ -74,6 +74,13 @@ namespace GameEngine
 			data.EventCallback(event);
 		});
 
+		glfwSetDropCallback(m_Window, [](GLFWwindow* window, int count, const char** paths)
+		{
+			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+			WindowDropEvent event(std::vector<std::string>(paths, paths + count));
+			data.EventCallback(event);
+		});
+
 		glfwSetKeyCallback(m_Window, [](GLFWwindow* window, int key, int scancode, int action, int mods)
 		{
 			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);

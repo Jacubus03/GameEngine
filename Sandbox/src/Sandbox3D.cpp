@@ -226,6 +226,7 @@ void Sandbox3D::OnImGuiRender()
     DrawMeshPanel();
     DrawLightPanel();
     DrawMaterialPanel();
+    m_AssetBrowser.OnImGuiRender();
 }
 
 void Sandbox3D::AddMeshObject(const std::string& name, const GameEngine::MeshData& data, const glm::vec3& position)
@@ -557,4 +558,14 @@ void Sandbox3D::DrawInspectorPanel()
 void Sandbox3D::OnEvent(GameEngine::Event& event)
 {
     m_CameraController->OnEvent(event);
+
+    GameEngine::EventDispatcher dispatcher(event);
+    dispatcher.Dispatch<GameEngine::WindowDropEvent>(GE_BIND_EVENT_FN(Sandbox3D::OnWindowDrop));
+}
+
+bool Sandbox3D::OnWindowDrop(GameEngine::WindowDropEvent& event)
+{
+    m_AssetBrowser.ImportFiles(event.GetPaths());
+
+    return true;
 }
