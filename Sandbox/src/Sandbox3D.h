@@ -75,6 +75,7 @@ private:
     glm::vec2 m_SceneSize{ 0.0f, 0.0f };
     bool m_SceneFocused = false;
     bool m_SceneHovered = false;
+    bool m_SceneDragging = false;
 
     // Changes requested by the UI (reparent, create, delete).
     std::vector<std::function<void()>> m_PendingActions;

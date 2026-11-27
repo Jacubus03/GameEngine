@@ -291,7 +291,20 @@ void Sandbox3D::DrawScenePanel()
     m_SceneFocused = ImGui::IsWindowFocused();
     m_SceneHovered = ImGui::IsWindowHovered();
 
-    GameEngine::Application::Get().GetImGuiLayer().BlockEvents(!m_SceneFocused || !m_SceneHovered);
+    // Right button drag started in the scene keeps working outside of the window
+    if (m_SceneHovered && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
+    {
+        m_SceneDragging = true;
+
+        // Right click focuses the window too
+        ImGui::SetWindowFocus();
+        m_SceneFocused = true;
+    }
+
+    if (!ImGui::IsMouseDown(ImGuiMouseButton_Right))
+        m_SceneDragging = false;
+
+    GameEngine::Application::Get().GetImGuiLayer().BlockEvents(!m_SceneDragging && (!m_SceneFocused || !m_SceneHovered));
 
     const ImVec2 size = ImGui::GetContentRegionAvail();
     m_SceneSize = { size.x, size.y };

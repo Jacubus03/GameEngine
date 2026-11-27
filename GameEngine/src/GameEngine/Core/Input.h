@@ -12,10 +12,14 @@ namespace GameEngine
 		static std::pair<float, float> GetMousePosition() { return s_Instance->GetMousePositionImpl(); }
 		static float GetMouseX() { return s_Instance->GetMousePositionImpl().first; }
 		static float GetMouseY() { return s_Instance->GetMousePositionImpl().second; }
+
+		// Moves the cursor to the opposite screen edge, returns the new window position
+		static bool WrapMouseAtScreenEdge(float& x, float& y) { return s_Instance->WrapMouseAtScreenEdgeImpl(x, y); }
 	protected:
 		virtual bool IsKeyPressedImpl(int keycode) = 0;
 		virtual bool IsMouseButtonPressedImpl(int button) = 0;
 		virtual std::pair<float, float> GetMousePositionImpl() = 0;
+		virtual bool WrapMouseAtScreenEdgeImpl(float& x, float& y) = 0;
 	private:
 		static Input* s_Instance;
 	};

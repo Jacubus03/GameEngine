@@ -1,5 +1,7 @@
 #include "SceneCameraController.h"
 
+#include <cmath>
+
 #include "GameEngine/Core/Input.h"
 #include "GameEngine/Core/KeyCodes.h"
 #include "GameEngine/Core/MouseButtonCodes.h"
@@ -69,6 +71,21 @@ namespace GameEngine
 		if (!Input::IsMouseButtonPressed(GE_MOUSE_BUTTON_RIGHT))
 		{
 			m_FirstMouse = true;
+			m_WaitingForWrap = false;
+			return false;
+		}
+
+		if (m_WaitingForWrap)
+		{
+			const bool arrived = std::abs(e.GetX() - m_WrapX) <= 1.0f && std::abs(e.GetY() - m_WrapY) <= 1.0f;
+
+			if (arrived || ++m_SkippedEvents > 8)
+			{
+				m_WaitingForWrap = false;
+				m_LastMouseX = e.GetX();
+				m_LastMouseY = e.GetY();
+			}
+
 			return false;
 		}
 
@@ -88,6 +105,18 @@ namespace GameEngine
 
 		m_Camera.transform.RotateGlobalY(xOffset * m_MouseSensitivity);
 		m_Camera.transform.RotateXClamped(yOffset * m_MouseSensitivity, -90.0f, 90.0f);
+
+		// Wrap
+		float wrapX = e.GetX();
+		float wrapY = e.GetY();
+
+		if (Input::WrapMouseAtScreenEdge(wrapX, wrapY))
+		{
+			m_WrapX = wrapX;
+			m_WrapY = wrapY;
+			m_WaitingForWrap = true;
+			m_SkippedEvents = 0;
+		}
 
 		return false;
 	}

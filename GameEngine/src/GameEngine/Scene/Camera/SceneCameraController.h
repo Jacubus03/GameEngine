@@ -31,5 +31,11 @@ namespace GameEngine
 
 		float m_LastMouseX = 0.0f;
 		float m_LastMouseY = 0.0f;
+
+		// Cursor was moved to the other screen edge, skip events until it arrives
+		bool m_WaitingForWrap = false;
+		int m_SkippedEvents = 0;
+		float m_WrapX = 0.0f;
+		float m_WrapY = 0.0f;
 	};
 }
