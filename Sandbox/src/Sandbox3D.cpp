@@ -112,7 +112,7 @@ void Sandbox3D::OnAttach()
     m_ShaderLibrary.Load("Assets/Shaders/VertexColor.glsl");
     m_ShaderLibrary.Load("Assets/Shaders/FlatColor.glsl");
     m_ShaderLibrary.Load("Assets/Shaders/MeshDebug.glsl");
-    m_ShaderLibrary.Load("Assets/Shaders/BlinnPhong.glsl");
+    auto blinnPhongShader = m_ShaderLibrary.Load("Assets/Shaders/BlinnPhong.glsl");
 
     auto textureShader = m_ShaderLibrary.Load("Assets/Shaders/Texture.glsl");
 
@@ -121,6 +121,9 @@ void Sandbox3D::OnAttach()
 
     textureShader->Bind();
     textureShader->SetInt("u_Texture", 0);
+
+    blinnPhongShader->Bind();
+    blinnPhongShader->SetInt("u_Texture", 0);
 
     // Meshes
     AddMeshObject("Cube", GameEngine::MeshFactory::CreateCube(), { -1.5f, 0.0f, 0.0f });
@@ -187,6 +190,8 @@ void Sandbox3D::OnUpdate(GameEngine::Timestep deltaTime)
 
     if (m_MeshView == 2)
     {
+        m_ErrorTexture->Bind();
+
         meshShader->SetFloat3("u_LightPosition", m_LightPosition);
         meshShader->SetFloat3("u_LightColor", m_LightColor);
         meshShader->SetFloat3("u_CameraPosition", m_Camera->transform.GetGlobalPosition());
@@ -194,6 +199,7 @@ void Sandbox3D::OnUpdate(GameEngine::Timestep deltaTime)
         meshShader->SetFloat("u_AmbientStrength", m_AmbientStrength);
         meshShader->SetFloat("u_SpecularStrength", m_SpecularStrength);
         meshShader->SetFloat("u_Shininess", m_Shininess);
+        meshShader->SetInt("u_UseTexture", m_UseTexture ? 1 : 0);
     }
     else
     {
@@ -218,6 +224,8 @@ void Sandbox3D::OnImGuiRender()
     DrawHierarchyPanel();
     DrawInspectorPanel();
     DrawMeshPanel();
+    DrawLightPanel();
+    DrawMaterialPanel();
 }
 
 void Sandbox3D::AddMeshObject(const std::string& name, const GameEngine::MeshData& data, const glm::vec3& position)
@@ -228,6 +236,29 @@ void Sandbox3D::AddMeshObject(const std::string& name, const GameEngine::MeshDat
     mesh.Mesh = GameEngine::Mesh::Create(data);
 
     m_MeshObjects.push_back(mesh);
+}
+
+void Sandbox3D::DrawLightPanel()
+{
+    ImGui::Begin("Light");
+
+    ImGui::DragFloat3("Position", &m_LightPosition.x, 0.05f);
+    ImGui::ColorEdit3("Color", &m_LightColor.x);
+    ImGui::SliderFloat("Ambient", &m_AmbientStrength, 0.0f, 1.0f);
+
+    ImGui::End();
+}
+
+void Sandbox3D::DrawMaterialPanel()
+{
+    ImGui::Begin("Material");
+
+    ImGui::ColorEdit3("Color", &m_MeshColor.x);
+    ImGui::SliderFloat("Specular", &m_SpecularStrength, 0.0f, 1.0f);
+    ImGui::SliderFloat("Shininess", &m_Shininess, 1.0f, 256.0f);
+    ImGui::Checkbox("Texture", &m_UseTexture);
+
+    ImGui::End();
 }
 
 void Sandbox3D::DrawMeshPanel()

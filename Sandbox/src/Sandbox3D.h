@@ -24,6 +24,8 @@ private:
     void DrawHierarchyPanel();
     void DrawInspectorPanel();
     void DrawMeshPanel();
+    void DrawLightPanel();
+    void DrawMaterialPanel();
 
     void AddMeshObject(const std::string& name, const GameEngine::MeshData& data, const glm::vec3& position);
 
@@ -64,6 +66,7 @@ private:
     float m_AmbientStrength = 0.15f;
     float m_SpecularStrength = 0.5f;
     float m_Shininess = 32.0f;
+    bool m_UseTexture = true;
 
     // Object currently selected in the Hierarchy panel (nullptr = nothing selected)
     GameEngine::Object* m_SelectedObject = nullptr;

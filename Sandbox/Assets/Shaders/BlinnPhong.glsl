@@ -36,6 +36,9 @@ uniform vec3 u_LightColor;
 uniform vec3 u_CameraPosition;
 uniform vec3 u_Color;
 
+uniform sampler2D u_Texture;
+uniform int u_UseTexture;
+
 uniform float u_AmbientStrength;
 uniform float u_SpecularStrength;
 uniform float u_Shininess;
@@ -50,7 +53,12 @@ void main()
 	float diffuse = max(dot(N, L), 0.0);
 	float specular = diffuse > 0.0 ? pow(max(dot(N, H), 0.0), u_Shininess) : 0.0;
 
-	vec3 result = (u_AmbientStrength + diffuse) * u_Color * u_LightColor
+	vec3 albedo = u_Color;
+
+	if (u_UseTexture == 1)
+		albedo *= texture(u_Texture, v_TexCoord).rgb;
+
+	vec3 result = (u_AmbientStrength + diffuse) * albedo * u_LightColor
 		+ u_SpecularStrength * specular * u_LightColor;
 
 	color = vec4(result, 1.0);
