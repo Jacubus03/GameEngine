@@ -19,6 +19,7 @@
 #include "GameEngine/Renderer/Buffer.h"
 #include "GameEngine/Renderer/Framebuffer.h"
 #include "GameEngine/Renderer/MeshData.h"
+#include "GameEngine/Renderer/Mesh.h"
 #include "GameEngine/Renderer/Shader.h"
 #include "GameEngine/Renderer/Texture.h"
 #include "GameEngine/Renderer/Renderer.h"

@@ -34,9 +34,7 @@ private:
     struct MeshObject
     {
         GameEngine::Object* Object = nullptr;
-        GameEngine::Ref<GameEngine::VertexArray> VertexArray;
-        uint32_t VertexCount = 0;
-        uint32_t TriangleCount = 0;
+        GameEngine::Ref<GameEngine::Mesh> Mesh;
     };
 
 private:

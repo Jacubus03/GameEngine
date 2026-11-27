@@ -3,7 +3,6 @@
 #include <imgui.h>
 
 #include <cstdio>
-#include <span>
 
 namespace
 {
@@ -25,30 +24,7 @@ namespace
             transform.SetScale(scale);
     }
 
-    GameEngine::Ref<GameEngine::VertexArray> CreateVertexArray(const GameEngine::MeshData& data)
-    {
-        GameEngine::Ref<GameEngine::VertexArray> vertexArray(GameEngine::VertexArray::Create());
-
-        const std::span<const float> vertices(
-            reinterpret_cast<const float*>(data.Vertices.data()),
-            data.Vertices.size() * (sizeof(GameEngine::MeshVertex) / sizeof(float))
-        );
-
-        GameEngine::Ref<GameEngine::VertexBuffer> vertexBuffer(GameEngine::VertexBuffer::Create(vertices));
-
-        vertexBuffer->SetLayout({
-            { GameEngine::ShaderDataType::Float3, "a_Position" },
-            { GameEngine::ShaderDataType::Float3, "a_Normal" },
-            { GameEngine::ShaderDataType::Float2, "a_TexCoord" }
-        });
-
-        vertexArray->AddVertexBuffer(vertexBuffer);
-
-        GameEngine::Ref<GameEngine::IndexBuffer> indexBuffer(GameEngine::IndexBuffer::Create(std::span<const uint32_t>(data.Indices)));
-        vertexArray->SetIndexBuffer(indexBuffer);
-
-        return vertexArray;
-    }
+    
 }
 
 Sandbox3D::Sandbox3D()
@@ -212,7 +188,7 @@ void Sandbox3D::OnUpdate(GameEngine::Timestep deltaTime)
     for (const MeshObject& mesh : m_MeshObjects)
     {
         if (mesh.Object)
-            GameEngine::Renderer::Submit(mesh.VertexArray, meshShader, mesh.Object->transform.GetGlobalTransformMatrix());
+            GameEngine::Renderer::Submit(mesh.Mesh, meshShader, mesh.Object->transform.GetGlobalTransformMatrix());
     }
 
     GameEngine::Renderer::EndScene();
@@ -234,9 +210,7 @@ void Sandbox3D::AddMeshObject(const std::string& name, const GameEngine::MeshDat
     MeshObject mesh;
     mesh.Object = &m_Scene.CreateObject(name);
     mesh.Object->transform.SetPosition(position);
-    mesh.VertexArray = CreateVertexArray(data);
-    mesh.VertexCount = (uint32_t)data.Vertices.size();
-    mesh.TriangleCount = (uint32_t)data.Indices.size() / 3;
+    mesh.Mesh = GameEngine::Mesh::Create(data);
 
     m_MeshObjects.push_back(mesh);
 }
@@ -254,7 +228,7 @@ void Sandbox3D::DrawMeshPanel()
     for (const MeshObject& mesh : m_MeshObjects)
     {
         if (mesh.Object)
-            ImGui::Text("%s: %u vertices, %u triangles", mesh.Object->GetName().c_str(), mesh.VertexCount, mesh.TriangleCount);
+            ImGui::Text("%s: %u vertices, %u triangles", mesh.Object->GetName().c_str(), mesh.Mesh->GetVertexCount(), mesh.Mesh->GetTriangleCount());
     }
 
     ImGui::End();

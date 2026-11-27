@@ -18,6 +18,11 @@ namespace GameEngine
 	{
 	}
 
+	void Renderer::Submit(const Ref<Mesh>& mesh, const Ref<Shader>& shader, const glm::mat4& transform)
+	{
+		Submit(mesh->GetVertexArray(), shader, transform);
+	}
+
 	void Renderer::Submit(const Ref<VertexArray>& vertexArray, const Ref<Shader>& shader, const glm::mat4& transform)
 	{
 		shader->Bind();
