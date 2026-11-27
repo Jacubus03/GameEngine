@@ -133,8 +133,8 @@ void Sandbox3D::OnAttach()
 
     if (auto model = GameEngine::MeshFactory::LoadOBJ("Assets/Models/torus.obj"))
     {
-        AddMeshObject("Torus", *model, { 0.0f, 1.0f, -0.5f });
-        m_MeshObjects.back().Object->transform.SetRotation({ 60.0f, 30.0f, 0.0f });
+        GameEngine::Object* torus = AddMeshObject("Torus", *model, { 0.0f, 1.0f, -0.5f });
+        torus->transform.SetRotation({ 60.0f, 30.0f, 0.0f });
     }
     else
     {
@@ -195,25 +195,31 @@ void Sandbox3D::OnUpdate(GameEngine::Timestep deltaTime)
         meshShader->SetFloat3("u_LightPosition", m_LightPosition);
         meshShader->SetFloat3("u_LightColor", m_LightColor);
         meshShader->SetFloat3("u_CameraPosition", m_Camera->transform.GetGlobalPosition());
-        meshShader->SetFloat3("u_Color", m_MeshColor);
         meshShader->SetFloat("u_AmbientStrength", m_AmbientStrength);
-        meshShader->SetFloat("u_SpecularStrength", m_SpecularStrength);
-        meshShader->SetFloat("u_Shininess", m_Shininess);
-        meshShader->SetInt("u_UseTexture", m_UseTexture ? 1 : 0);
     }
     else
     {
         meshShader->SetInt("u_Mode", m_MeshView);
     }
 
-    for (const MeshObject& mesh : m_MeshObjects)
+    for (const auto& object : m_Scene.GetObjects())
     {
-        if (!mesh.Object)
+        if (!object->meshRenderer)
             continue;
 
-        (mesh.Texture ? mesh.Texture : m_ErrorTexture)->Bind();
+        const GameEngine::Material& material = object->meshRenderer->material;
 
-        GameEngine::Renderer::Submit(mesh.Mesh, meshShader, mesh.Object->transform.GetGlobalTransformMatrix());
+        if (m_MeshView == 2)
+        {
+            meshShader->SetFloat3("u_Color", material.Color);
+            meshShader->SetFloat("u_SpecularStrength", material.SpecularStrength);
+            meshShader->SetFloat("u_Shininess", material.Shininess);
+            meshShader->SetInt("u_UseTexture", material.UseTexture ? 1 : 0);
+        }
+
+        (material.Texture ? material.Texture : m_ErrorTexture)->Bind();
+
+        GameEngine::Renderer::Submit(object->meshRenderer->mesh, meshShader, object->transform.GetGlobalTransformMatrix());
     }
 
     GameEngine::Renderer::EndScene();
@@ -229,31 +235,16 @@ void Sandbox3D::OnImGuiRender()
     DrawInspectorPanel();
     DrawMeshPanel();
     DrawLightPanel();
-    DrawMaterialPanel();
     m_AssetBrowser.OnImGuiRender();
 }
 
 GameEngine::Object* Sandbox3D::AddMeshObject(const std::string& name, const GameEngine::MeshData& data, const glm::vec3& position)
 {
-    MeshObject mesh;
-    mesh.Object = &m_Scene.CreateObject(name);
-    mesh.Object->transform.SetPosition(position);
-    mesh.Mesh = GameEngine::Mesh::Create(data);
+    GameEngine::Object& object = m_Scene.CreateObject(name);
+    object.transform.SetPosition(position);
+    object.meshRenderer = GameEngine::MeshRenderer{ GameEngine::Mesh::Create(data), GameEngine::Material{} };
 
-    m_MeshObjects.push_back(mesh);
-
-    return mesh.Object;
-}
-
-Sandbox3D::MeshObject* Sandbox3D::FindMeshObject(GameEngine::Object* object)
-{
-    for (MeshObject& mesh : m_MeshObjects)
-    {
-        if (object && mesh.Object == object)
-            return &mesh;
-    }
-
-    return nullptr;
+    return &object;
 }
 
 void Sandbox3D::HandleAssetDrop(const std::string& path)
@@ -281,16 +272,16 @@ void Sandbox3D::HandleAssetDrop(const std::string& path)
     }
     else if (extension == ".png" || extension == ".jpg" || extension == ".jpeg" || extension == ".bmp" || extension == ".tga")
     {
-        MeshObject* mesh = FindMeshObject(m_SelectedObject);
-
-        if (!mesh)
+        if (!m_SelectedObject || !m_SelectedObject->meshRenderer)
         {
             GE_LOG_WARN("Select a mesh object to set the texture");
             return;
         }
 
-        mesh->Texture = GameEngine::Texture2D::Create(path);
-        mesh->TexturePath = file.filename().string();
+        GameEngine::Material& material = m_SelectedObject->meshRenderer->material;
+
+        material.Texture = GameEngine::Texture2D::Create(path);
+        material.TexturePath = file.filename().string();
     }
 }
 
@@ -320,16 +311,26 @@ void Sandbox3D::DrawLightPanel()
     ImGui::End();
 }
 
-void Sandbox3D::DrawMaterialPanel()
+void Sandbox3D::DrawMaterialInspector(GameEngine::Material& material)
 {
-    ImGui::Begin("Material");
+    ImGui::Separator();
+    ImGui::Text("Material");
 
-    ImGui::ColorEdit3("Color", &m_MeshColor.x);
-    ImGui::SliderFloat("Specular", &m_SpecularStrength, 0.0f, 1.0f);
-    ImGui::SliderFloat("Shininess", &m_Shininess, 1.0f, 256.0f);
-    ImGui::Checkbox("Texture", &m_UseTexture);
+    ImGui::ColorEdit3("Color", &material.Color.x);
+    ImGui::SliderFloat("Specular", &material.SpecularStrength, 0.0f, 1.0f);
+    ImGui::SliderFloat("Shininess", &material.Shininess, 1.0f, 256.0f);
+    ImGui::Checkbox("Use texture", &material.UseTexture);
 
-    ImGui::End();
+    const std::string label = material.Texture ? material.TexturePath : "Default (drop a texture here)";
+    ImGui::Button(label.c_str(), ImVec2(-1.0f, 0.0f));
+
+    AcceptAssetDrop();
+
+    if (material.Texture && ImGui::Button("Reset texture"))
+    {
+        material.Texture = nullptr;
+        material.TexturePath.clear();
+    }
 }
 
 void Sandbox3D::DrawMeshPanel()
@@ -344,10 +345,13 @@ void Sandbox3D::DrawMeshPanel()
 
     ImGui::Separator();
 
-    for (const MeshObject& mesh : m_MeshObjects)
+    for (const auto& object : m_Scene.GetObjects())
     {
-        if (mesh.Object)
-            ImGui::Text("%s: %u vertices, %u triangles", mesh.Object->GetName().c_str(), mesh.Mesh->GetVertexCount(), mesh.Mesh->GetTriangleCount());
+        if (object->meshRenderer)
+        {
+            const auto& mesh = object->meshRenderer->mesh;
+            ImGui::Text("%s: %u vertices, %u triangles", object->GetName().c_str(), mesh->GetVertexCount(), mesh->GetTriangleCount());
+        }
     }
 
     ImGui::End();
@@ -584,12 +588,6 @@ void Sandbox3D::DestroyObjectRecursive(GameEngine::Object& object)
     if (m_Square == &object)         m_Square = nullptr;
     if (m_Triangle == &object)       m_Triangle = nullptr;
 
-    for (MeshObject& mesh : m_MeshObjects)
-    {
-        if (mesh.Object == &object)
-            mesh.Object = nullptr;
-    }
-
     m_Scene.DestroyObject(object);
 }
 
@@ -619,21 +617,14 @@ void Sandbox3D::DrawInspectorPanel()
         ImGui::Text("Transform (local)");
         DrawTransformInspector(m_SelectedObject->transform);
 
-        if (MeshObject* mesh = FindMeshObject(m_SelectedObject))
+        if (m_SelectedObject->meshRenderer)
         {
+            const auto& mesh = m_SelectedObject->meshRenderer->mesh;
+
             ImGui::Separator();
-            ImGui::Text("Texture");
+            ImGui::Text("Mesh: %u vertices, %u triangles", mesh->GetVertexCount(), mesh->GetTriangleCount());
 
-            const std::string label = mesh->Texture ? mesh->TexturePath : "Default (drop a texture here)";
-            ImGui::Button(label.c_str(), ImVec2(-1.0f, 0.0f));
-
-            AcceptAssetDrop();
-
-            if (mesh->Texture && ImGui::Button("Reset texture"))
-            {
-                mesh->Texture = nullptr;
-                mesh->TexturePath.clear();
-            }
+            DrawMaterialInspector(m_SelectedObject->meshRenderer->material);
         }
     }
     else

@@ -29,7 +29,7 @@ private:
     void DrawInspectorPanel();
     void DrawMeshPanel();
     void DrawLightPanel();
-    void DrawMaterialPanel();
+    void DrawMaterialInspector(GameEngine::Material& material);
 
     GameEngine::Object* AddMeshObject(const std::string& name, const GameEngine::MeshData& data, const glm::vec3& position);
 
@@ -37,15 +37,6 @@ private:
     void DestroyObjectRecursive(GameEngine::Object& object);
 
 private:
-    struct MeshObject
-    {
-        GameEngine::Object* Object = nullptr;
-        GameEngine::Ref<GameEngine::Mesh> Mesh;
-        GameEngine::Ref<GameEngine::Texture2D> Texture;
-        std::string TexturePath;
-    };
-
-    MeshObject* FindMeshObject(GameEngine::Object* object);
     void HandleAssetDrop(const std::string& path);
     void AcceptAssetDrop();
 
@@ -68,17 +59,12 @@ private:
     GameEngine::Object* m_Square = nullptr;
     GameEngine::Object* m_Triangle = nullptr;
 
-    std::vector<MeshObject> m_MeshObjects;
     int m_MeshView = 2;
 
-    // Light and material
+    // Light
     glm::vec3 m_LightPosition{ 2.0f, 3.0f, 3.0f };
     glm::vec3 m_LightColor{ 1.0f, 1.0f, 1.0f };
-    glm::vec3 m_MeshColor{ 0.8f, 0.8f, 0.8f };
     float m_AmbientStrength = 0.15f;
-    float m_SpecularStrength = 0.5f;
-    float m_Shininess = 32.0f;
-    bool m_UseTexture = true;
 
     // Object currently selected in the Hierarchy panel (nullptr = nothing selected)
     GameEngine::Object* m_SelectedObject = nullptr;

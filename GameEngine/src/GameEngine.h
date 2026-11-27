@@ -20,6 +20,7 @@
 #include "GameEngine/Renderer/Framebuffer.h"
 #include "GameEngine/Renderer/MeshData.h"
 #include "GameEngine/Renderer/Mesh.h"
+#include "GameEngine/Renderer/Material.h"
 #include "GameEngine/Renderer/Shader.h"
 #include "GameEngine/Renderer/Texture.h"
 #include "GameEngine/Renderer/Renderer.h"
@@ -27,6 +28,7 @@
 
 // Scene
 #include "GameEngine/Scene/Scene.h"
+#include "GameEngine/Scene/MeshRenderer.h"
 #include "GameEngine/Scene/Object.h"
 #include "GameEngine/Scene/Transform.h"
 #include "GameEngine/Scene/Camera/Camera.h"

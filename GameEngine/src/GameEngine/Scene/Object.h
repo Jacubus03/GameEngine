@@ -1,6 +1,9 @@
 #pragma once
 
 #include "Transform.h"
+#include "MeshRenderer.h"
+
+#include <optional>
 
 namespace GameEngine
 {
@@ -15,6 +18,9 @@ namespace GameEngine
 
     public:
         Transform transform;
+
+        // Empty when the object has no mesh
+        std::optional<MeshRenderer> meshRenderer;
     private:
         std::string m_Name;
     };
