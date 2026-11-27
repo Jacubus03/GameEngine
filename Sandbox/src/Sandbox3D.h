@@ -55,7 +55,15 @@ private:
     GameEngine::Object* m_Triangle = nullptr;
 
     std::vector<MeshObject> m_MeshObjects;
-    int m_MeshView = 0;
+    int m_MeshView = 2;
+
+    // Light and material
+    glm::vec3 m_LightPosition{ 2.0f, 3.0f, 3.0f };
+    glm::vec3 m_LightColor{ 1.0f, 1.0f, 1.0f };
+    glm::vec3 m_MeshColor{ 0.8f, 0.8f, 0.8f };
+    float m_AmbientStrength = 0.15f;
+    float m_SpecularStrength = 0.5f;
+    float m_Shininess = 32.0f;
 
     // Object currently selected in the Hierarchy panel (nullptr = nothing selected)
     GameEngine::Object* m_SelectedObject = nullptr;

@@ -112,6 +112,7 @@ void Sandbox3D::OnAttach()
     m_ShaderLibrary.Load("Assets/Shaders/VertexColor.glsl");
     m_ShaderLibrary.Load("Assets/Shaders/FlatColor.glsl");
     m_ShaderLibrary.Load("Assets/Shaders/MeshDebug.glsl");
+    m_ShaderLibrary.Load("Assets/Shaders/BlinnPhong.glsl");
 
     auto textureShader = m_ShaderLibrary.Load("Assets/Shaders/Texture.glsl");
 
@@ -180,10 +181,24 @@ void Sandbox3D::OnUpdate(GameEngine::Timestep deltaTime)
     if (m_Square) GameEngine::Renderer::Submit(m_SquareVA, textureShader, m_Square->transform.GetGlobalTransformMatrix());
     if (m_Triangle) GameEngine::Renderer::Submit(m_TriangleVA, vertexColorShader, m_Triangle->transform.GetGlobalTransformMatrix());
 
-    auto meshShader = m_ShaderLibrary.Get("MeshDebug");
+    auto meshShader = m_ShaderLibrary.Get(m_MeshView == 2 ? "BlinnPhong" : "MeshDebug");
 
     meshShader->Bind();
-    meshShader->SetInt("u_Mode", m_MeshView);
+
+    if (m_MeshView == 2)
+    {
+        meshShader->SetFloat3("u_LightPosition", m_LightPosition);
+        meshShader->SetFloat3("u_LightColor", m_LightColor);
+        meshShader->SetFloat3("u_CameraPosition", m_Camera->transform.GetGlobalPosition());
+        meshShader->SetFloat3("u_Color", m_MeshColor);
+        meshShader->SetFloat("u_AmbientStrength", m_AmbientStrength);
+        meshShader->SetFloat("u_SpecularStrength", m_SpecularStrength);
+        meshShader->SetFloat("u_Shininess", m_Shininess);
+    }
+    else
+    {
+        meshShader->SetInt("u_Mode", m_MeshView);
+    }
 
     for (const MeshObject& mesh : m_MeshObjects)
     {
@@ -222,6 +237,8 @@ void Sandbox3D::DrawMeshPanel()
     ImGui::RadioButton("Normals", &m_MeshView, 0);
     ImGui::SameLine();
     ImGui::RadioButton("UV", &m_MeshView, 1);
+    ImGui::SameLine();
+    ImGui::RadioButton("Lit", &m_MeshView, 2);
 
     ImGui::Separator();
 
