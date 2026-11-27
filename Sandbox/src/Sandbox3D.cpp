@@ -2,7 +2,9 @@
 
 #include <imgui.h>
 
+#include <algorithm>
 #include <cstdio>
+#include <filesystem>
 
 namespace
 {
@@ -190,8 +192,6 @@ void Sandbox3D::OnUpdate(GameEngine::Timestep deltaTime)
 
     if (m_MeshView == 2)
     {
-        m_ErrorTexture->Bind();
-
         meshShader->SetFloat3("u_LightPosition", m_LightPosition);
         meshShader->SetFloat3("u_LightColor", m_LightColor);
         meshShader->SetFloat3("u_CameraPosition", m_Camera->transform.GetGlobalPosition());
@@ -208,8 +208,12 @@ void Sandbox3D::OnUpdate(GameEngine::Timestep deltaTime)
 
     for (const MeshObject& mesh : m_MeshObjects)
     {
-        if (mesh.Object)
-            GameEngine::Renderer::Submit(mesh.Mesh, meshShader, mesh.Object->transform.GetGlobalTransformMatrix());
+        if (!mesh.Object)
+            continue;
+
+        (mesh.Texture ? mesh.Texture : m_ErrorTexture)->Bind();
+
+        GameEngine::Renderer::Submit(mesh.Mesh, meshShader, mesh.Object->transform.GetGlobalTransformMatrix());
     }
 
     GameEngine::Renderer::EndScene();
@@ -229,7 +233,7 @@ void Sandbox3D::OnImGuiRender()
     m_AssetBrowser.OnImGuiRender();
 }
 
-void Sandbox3D::AddMeshObject(const std::string& name, const GameEngine::MeshData& data, const glm::vec3& position)
+GameEngine::Object* Sandbox3D::AddMeshObject(const std::string& name, const GameEngine::MeshData& data, const glm::vec3& position)
 {
     MeshObject mesh;
     mesh.Object = &m_Scene.CreateObject(name);
@@ -237,6 +241,72 @@ void Sandbox3D::AddMeshObject(const std::string& name, const GameEngine::MeshDat
     mesh.Mesh = GameEngine::Mesh::Create(data);
 
     m_MeshObjects.push_back(mesh);
+
+    return mesh.Object;
+}
+
+Sandbox3D::MeshObject* Sandbox3D::FindMeshObject(GameEngine::Object* object)
+{
+    for (MeshObject& mesh : m_MeshObjects)
+    {
+        if (object && mesh.Object == object)
+            return &mesh;
+    }
+
+    return nullptr;
+}
+
+void Sandbox3D::HandleAssetDrop(const std::string& path)
+{
+    const std::filesystem::path file(path);
+
+    std::string extension = file.extension().string();
+    std::transform(extension.begin(), extension.end(), extension.begin(), [](unsigned char c) { return (char)std::tolower(c); });
+
+    if (extension == ".obj")
+    {
+        auto model = GameEngine::MeshFactory::LoadOBJ(path);
+
+        if (!model)
+        {
+            GE_LOG_ERROR("Could not load model {0}", path);
+            return;
+        }
+
+        // In front of the camera
+        const glm::vec3 position = m_Camera->transform.GetGlobalPosition()
+            + m_Camera->transform.GetGlobalRotationQuaternion() * glm::vec3(0.0f, 0.0f, -3.0f);
+
+        m_SelectedObject = AddMeshObject(file.stem().string(), *model, position);
+    }
+    else if (extension == ".png" || extension == ".jpg" || extension == ".jpeg" || extension == ".bmp" || extension == ".tga")
+    {
+        MeshObject* mesh = FindMeshObject(m_SelectedObject);
+
+        if (!mesh)
+        {
+            GE_LOG_WARN("Select a mesh object to set the texture");
+            return;
+        }
+
+        mesh->Texture = GameEngine::Texture2D::Create(path);
+        mesh->TexturePath = file.filename().string();
+    }
+}
+
+void Sandbox3D::AcceptAssetDrop()
+{
+    if (!ImGui::BeginDragDropTarget())
+        return;
+
+    if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_PATH"))
+    {
+        // Applied later, objects can change while the panels are drawn
+        const std::string path = (const char*)payload->Data;
+        m_PendingActions.push_back([this, path]() { HandleAssetDrop(path); });
+    }
+
+    ImGui::EndDragDropTarget();
 }
 
 void Sandbox3D::DrawLightPanel()
@@ -312,6 +382,8 @@ void Sandbox3D::DrawScenePanel()
 
     const uint64_t textureID = m_Framebuffer->GetColorAttachmentRendererID();
     ImGui::Image((ImTextureID)textureID, size, ImVec2(0.0f, 1.0f), ImVec2(1.0f, 0.0f));
+
+    AcceptAssetDrop();
 
     ImGui::End();
 }
@@ -546,6 +618,23 @@ void Sandbox3D::DrawInspectorPanel()
         ImGui::Separator();
         ImGui::Text("Transform (local)");
         DrawTransformInspector(m_SelectedObject->transform);
+
+        if (MeshObject* mesh = FindMeshObject(m_SelectedObject))
+        {
+            ImGui::Separator();
+            ImGui::Text("Texture");
+
+            const std::string label = mesh->Texture ? mesh->TexturePath : "Default (drop a texture here)";
+            ImGui::Button(label.c_str(), ImVec2(-1.0f, 0.0f));
+
+            AcceptAssetDrop();
+
+            if (mesh->Texture && ImGui::Button("Reset texture"))
+            {
+                mesh->Texture = nullptr;
+                mesh->TexturePath.clear();
+            }
+        }
     }
     else
     {

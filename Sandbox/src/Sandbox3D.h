@@ -31,7 +31,7 @@ private:
     void DrawLightPanel();
     void DrawMaterialPanel();
 
-    void AddMeshObject(const std::string& name, const GameEngine::MeshData& data, const glm::vec3& position);
+    GameEngine::Object* AddMeshObject(const std::string& name, const GameEngine::MeshData& data, const glm::vec3& position);
 
     void DrawObjectNode(GameEngine::Object& object);
     void DestroyObjectRecursive(GameEngine::Object& object);
@@ -41,7 +41,13 @@ private:
     {
         GameEngine::Object* Object = nullptr;
         GameEngine::Ref<GameEngine::Mesh> Mesh;
+        GameEngine::Ref<GameEngine::Texture2D> Texture;
+        std::string TexturePath;
     };
+
+    MeshObject* FindMeshObject(GameEngine::Object* object);
+    void HandleAssetDrop(const std::string& path);
+    void AcceptAssetDrop();
 
 private:
     GameEngine::ShaderLibrary m_ShaderLibrary;
