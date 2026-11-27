@@ -3,6 +3,8 @@
 #include "GameEngine/Core/Core.h"
 
 #include <cstdint>
+#include <optional>
+#include <string>
 #include <vector>
 
 namespace GameEngine
@@ -24,5 +26,8 @@ namespace GameEngine
 	{
 		GAMEENGINE_API MeshData CreateCube();
 		GAMEENGINE_API MeshData CreateUVSphere(uint32_t segments, uint32_t rings);
+
+		GAMEENGINE_API std::optional<MeshData> LoadOBJ(const std::string& path, bool normalize = true);
+		GAMEENGINE_API std::optional<MeshData> ParseOBJ(const std::string& text, bool normalize = true);
 	}
 }

@@ -3,6 +3,7 @@
 #include <imgui.h>
 
 #include <cstdio>
+#include <span>
 
 namespace
 {
@@ -22,6 +23,31 @@ namespace
         glm::vec3 scale = transform.GetScale();
         if (ImGui::DragFloat3("Scale", &scale.x, 0.05f))
             transform.SetScale(scale);
+    }
+
+    GameEngine::Ref<GameEngine::VertexArray> CreateVertexArray(const GameEngine::MeshData& data)
+    {
+        GameEngine::Ref<GameEngine::VertexArray> vertexArray(GameEngine::VertexArray::Create());
+
+        const std::span<const float> vertices(
+            reinterpret_cast<const float*>(data.Vertices.data()),
+            data.Vertices.size() * (sizeof(GameEngine::MeshVertex) / sizeof(float))
+        );
+
+        GameEngine::Ref<GameEngine::VertexBuffer> vertexBuffer(GameEngine::VertexBuffer::Create(vertices));
+
+        vertexBuffer->SetLayout({
+            { GameEngine::ShaderDataType::Float3, "a_Position" },
+            { GameEngine::ShaderDataType::Float3, "a_Normal" },
+            { GameEngine::ShaderDataType::Float2, "a_TexCoord" }
+        });
+
+        vertexArray->AddVertexBuffer(vertexBuffer);
+
+        GameEngine::Ref<GameEngine::IndexBuffer> indexBuffer(GameEngine::IndexBuffer::Create(std::span<const uint32_t>(data.Indices)));
+        vertexArray->SetIndexBuffer(indexBuffer);
+
+        return vertexArray;
     }
 }
 
@@ -109,6 +135,7 @@ void Sandbox3D::OnAttach()
     // Shaders
     m_ShaderLibrary.Load("Assets/Shaders/VertexColor.glsl");
     m_ShaderLibrary.Load("Assets/Shaders/FlatColor.glsl");
+    m_ShaderLibrary.Load("Assets/Shaders/MeshDebug.glsl");
 
     auto textureShader = m_ShaderLibrary.Load("Assets/Shaders/Texture.glsl");
 
@@ -117,6 +144,20 @@ void Sandbox3D::OnAttach()
 
     textureShader->Bind();
     textureShader->SetInt("u_Texture", 0);
+
+    // Meshes
+    AddMeshObject("Cube", GameEngine::MeshFactory::CreateCube(), { -1.5f, 0.0f, 0.0f });
+    AddMeshObject("Sphere", GameEngine::MeshFactory::CreateUVSphere(32, 16), { 1.5f, 0.0f, 0.0f });
+
+    if (auto model = GameEngine::MeshFactory::LoadOBJ("Assets/Models/torus.obj"))
+    {
+        AddMeshObject("Torus", *model, { 0.0f, 1.0f, -0.5f });
+        m_MeshObjects.back().Object->transform.SetRotation({ 60.0f, 30.0f, 0.0f });
+    }
+    else
+    {
+        GE_LOG_ERROR("Could not load Assets/Models/torus.obj");
+    }
 }
 
 void Sandbox3D::OnDetach()
@@ -163,6 +204,17 @@ void Sandbox3D::OnUpdate(GameEngine::Timestep deltaTime)
     if (m_Square) GameEngine::Renderer::Submit(m_SquareVA, textureShader, m_Square->transform.GetGlobalTransformMatrix());
     if (m_Triangle) GameEngine::Renderer::Submit(m_TriangleVA, vertexColorShader, m_Triangle->transform.GetGlobalTransformMatrix());
 
+    auto meshShader = m_ShaderLibrary.Get("MeshDebug");
+
+    meshShader->Bind();
+    meshShader->SetInt("u_Mode", m_MeshView);
+
+    for (const MeshObject& mesh : m_MeshObjects)
+    {
+        if (mesh.Object)
+            GameEngine::Renderer::Submit(mesh.VertexArray, meshShader, mesh.Object->transform.GetGlobalTransformMatrix());
+    }
+
     GameEngine::Renderer::EndScene();
 
     m_Framebuffer->Unbind();
@@ -174,6 +226,38 @@ void Sandbox3D::OnImGuiRender()
     DrawScenePanel();
     DrawHierarchyPanel();
     DrawInspectorPanel();
+    DrawMeshPanel();
+}
+
+void Sandbox3D::AddMeshObject(const std::string& name, const GameEngine::MeshData& data, const glm::vec3& position)
+{
+    MeshObject mesh;
+    mesh.Object = &m_Scene.CreateObject(name);
+    mesh.Object->transform.SetPosition(position);
+    mesh.VertexArray = CreateVertexArray(data);
+    mesh.VertexCount = (uint32_t)data.Vertices.size();
+    mesh.TriangleCount = (uint32_t)data.Indices.size() / 3;
+
+    m_MeshObjects.push_back(mesh);
+}
+
+void Sandbox3D::DrawMeshPanel()
+{
+    ImGui::Begin("Meshes");
+
+    ImGui::RadioButton("Normals", &m_MeshView, 0);
+    ImGui::SameLine();
+    ImGui::RadioButton("UV", &m_MeshView, 1);
+
+    ImGui::Separator();
+
+    for (const MeshObject& mesh : m_MeshObjects)
+    {
+        if (mesh.Object)
+            ImGui::Text("%s: %u vertices, %u triangles", mesh.Object->GetName().c_str(), mesh.VertexCount, mesh.TriangleCount);
+    }
+
+    ImGui::End();
 }
 
 void Sandbox3D::DrawScenePanel()
@@ -391,6 +475,12 @@ void Sandbox3D::DestroyObjectRecursive(GameEngine::Object& object)
     if (m_SelectedObject == &object) m_SelectedObject = nullptr;
     if (m_Square == &object)         m_Square = nullptr;
     if (m_Triangle == &object)       m_Triangle = nullptr;
+
+    for (MeshObject& mesh : m_MeshObjects)
+    {
+        if (mesh.Object == &object)
+            mesh.Object = nullptr;
+    }
 
     m_Scene.DestroyObject(object);
 }
