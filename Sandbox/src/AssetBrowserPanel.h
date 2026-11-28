@@ -7,7 +7,8 @@
 class AssetBrowserPanel
 {
 public:
-    explicit AssetBrowserPanel(const std::filesystem::path& root = "Assets");
+    // sourceRoot is the Assets folder of the project, scripts are copied there too
+    explicit AssetBrowserPanel(const std::filesystem::path& root = "Assets", const std::filesystem::path& sourceRoot = "");
 
     void OnImGuiRender();
 
@@ -16,5 +17,6 @@ public:
 
 private:
     std::filesystem::path m_Root;
+    std::filesystem::path m_SourceRoot;
     std::filesystem::path m_CurrentDirectory;
 };

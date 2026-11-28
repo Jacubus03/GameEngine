@@ -140,6 +140,7 @@ void Sandbox3D::OnAttach()
     {
         GE_LOG_ERROR("Could not load Assets/Models/torus.obj");
     }
+
 }
 
 void Sandbox3D::OnDetach()
@@ -162,6 +163,8 @@ void Sandbox3D::OnUpdate(GameEngine::Timestep deltaTime)
     // Update
     if (m_SceneFocused)
         m_CameraController->OnUpdate(deltaTime);
+
+    m_Scene.OnUpdate(deltaTime);
 
     // Render
     m_Framebuffer->Bind();
@@ -269,6 +272,19 @@ void Sandbox3D::HandleAssetDrop(const std::string& path)
             + m_Camera->transform.GetGlobalRotationQuaternion() * glm::vec3(0.0f, 0.0f, -3.0f);
 
         m_SelectedObject = AddMeshObject(file.stem().string(), *model, position);
+    }
+    else if (extension == ".cpp")
+    {
+        const std::string name = file.stem().string();
+
+        if (!m_SelectedObject)
+        {
+            GE_LOG_WARN("Select an object to add the script");
+            return;
+        }
+
+        if (!m_SelectedObject->AddScript(GameEngine::ScriptRegistry::Create(name)))
+            GE_LOG_WARN("Script {0} is not compiled yet, rebuild the project", name);
     }
     else if (extension == ".png" || extension == ".jpg" || extension == ".jpeg" || extension == ".bmp" || extension == ".tga")
     {
@@ -626,6 +642,8 @@ void Sandbox3D::DrawInspectorPanel()
 
             DrawMaterialInspector(m_SelectedObject->meshRenderer->material);
         }
+
+        DrawScriptsSection(*m_SelectedObject);
     }
     else
     {
@@ -633,6 +651,49 @@ void Sandbox3D::DrawInspectorPanel()
     }
 
     ImGui::End();
+}
+
+void Sandbox3D::DrawScriptsSection(GameEngine::Object& object)
+{
+    ImGui::Separator();
+    ImGui::Text("Scripts");
+
+    for (const auto& script : object.GetScripts())
+    {
+        ImGui::PushID(script.get());
+
+        if (ImGui::CollapsingHeader(script->GetName().c_str(), ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            script->OnImGuiRender();
+
+            GameEngine::Script* target = script.get();
+            GameEngine::Object* owner = &object;
+
+            if (ImGui::Button("Remove"))
+                m_PendingActions.push_back([owner, target]() { owner->RemoveScript(target); });
+        }
+
+        ImGui::PopID();
+    }
+
+    if (ImGui::Button("Add Script (or drop a script here)", ImVec2(-1.0f, 0.0f)))
+        ImGui::OpenPopup("##add_script");
+
+    AcceptAssetDrop();
+
+    if (ImGui::BeginPopup("##add_script"))
+    {
+        for (const std::string& name : GameEngine::ScriptRegistry::GetNames())
+        {
+            if (ImGui::MenuItem(name.c_str()))
+            {
+                GameEngine::Object* owner = &object;
+                m_PendingActions.push_back([owner, name]() { owner->AddScript(GameEngine::ScriptRegistry::Create(name)); });
+            }
+        }
+
+        ImGui::EndPopup();
+    }
 }
 
 void Sandbox3D::OnEvent(GameEngine::Event& event)

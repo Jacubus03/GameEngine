@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Object.h"
+#include "GameEngine/Core/Timestep.h"
 
 namespace GameEngine
 {
@@ -22,6 +23,9 @@ namespace GameEngine
         void DestroyObject(Object& object);
 
         Object* FindObject(const Transform* transform) const;
+
+        // Updates the scripts of all objects
+        void OnUpdate(Timestep deltaTime);
 
         const std::vector<std::unique_ptr<Object>>& GetObjects() const
         {

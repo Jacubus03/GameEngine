@@ -40,8 +40,8 @@ namespace
     }
 }
 
-AssetBrowserPanel::AssetBrowserPanel(const std::filesystem::path& root)
-    : m_Root(root), m_CurrentDirectory(root)
+AssetBrowserPanel::AssetBrowserPanel(const std::filesystem::path& root, const std::filesystem::path& sourceRoot)
+    : m_Root(root), m_SourceRoot(sourceRoot), m_CurrentDirectory(root)
 {
 }
 
@@ -121,9 +121,31 @@ void AssetBrowserPanel::ImportFiles(const std::vector<std::string>& paths)
     for (const std::string& file : paths)
     {
         const std::filesystem::path source = ToPath(file);
-        const std::filesystem::path destination = UniquePath(m_CurrentDirectory / source.filename());
-
         std::error_code error;
+
+        // Scripts always go to the Scripts folder
+        if (source.extension() == ".cpp")
+        {
+            if (!m_SourceRoot.empty())
+            {
+                std::filesystem::create_directories(m_SourceRoot / "Scripts", error);
+                std::filesystem::copy_file(source, m_SourceRoot / "Scripts" / source.filename(), std::filesystem::copy_options::overwrite_existing, error);
+            }
+
+            const std::filesystem::path scriptsDirectory = m_Root / "Scripts";
+            std::filesystem::create_directories(scriptsDirectory, error);
+            std::filesystem::copy_file(source, scriptsDirectory / source.filename(), std::filesystem::copy_options::overwrite_existing, error);
+
+            if (error)
+                GE_LOG_ERROR("Could not import {0}: {1}", file, error.message());
+            else
+                GE_LOG_INFO("Imported script {0}, rebuild the project to use it", ToString(source.filename()));
+
+            m_CurrentDirectory = scriptsDirectory;
+            continue;
+        }
+
+        const std::filesystem::path destination = UniquePath(m_CurrentDirectory / source.filename());
         std::filesystem::copy(source, destination, std::filesystem::copy_options::recursive, error);
 
         if (error)

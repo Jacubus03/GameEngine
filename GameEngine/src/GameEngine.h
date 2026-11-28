@@ -27,6 +27,8 @@
 #include "GameEngine/Renderer/VertexArray.h"
 
 // Scene
+#include "GameEngine/Scripting/Script.h"
+#include "GameEngine/Scripting/ScriptRegistry.h"
 #include "GameEngine/Scene/Scene.h"
 #include "GameEngine/Scene/MeshRenderer.h"
 #include "GameEngine/Scene/Object.h"

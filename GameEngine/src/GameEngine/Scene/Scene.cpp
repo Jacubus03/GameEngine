@@ -1,5 +1,7 @@
 #include "Scene.h"
 
+#include "GameEngine/Scripting/Script.h"
+
 namespace GameEngine
 {
     Object& Scene::CreateObject(const std::string& name)
@@ -22,6 +24,17 @@ namespace GameEngine
 
         if (it != m_Objects.end())
             m_Objects.erase(it);
+    }
+
+    void Scene::OnUpdate(Timestep deltaTime)
+    {
+        for (size_t i = 0; i < m_Objects.size(); i++)
+        {
+            Object& object = *m_Objects[i];
+
+            for (size_t j = 0; j < object.GetScripts().size(); j++)
+                object.GetScripts()[j]->OnUpdate(deltaTime);
+        }
     }
 
     Object* Scene::FindObject(const Transform* transform) const

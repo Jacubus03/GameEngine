@@ -30,6 +30,7 @@ private:
     void DrawMeshPanel();
     void DrawLightPanel();
     void DrawMaterialInspector(GameEngine::Material& material);
+    void DrawScriptsSection(GameEngine::Object& object);
 
     GameEngine::Object* AddMeshObject(const std::string& name, const GameEngine::MeshData& data, const glm::vec3& position);
 
@@ -53,7 +54,11 @@ private:
     GameEngine::Ref<GameEngine::Camera> m_Camera;
     GameEngine::Ref<GameEngine::SceneCameraController> m_CameraController;
 
+#ifdef SANDBOX_SOURCE_ASSETS_DIR
+    AssetBrowserPanel m_AssetBrowser{ "Assets", SANDBOX_SOURCE_ASSETS_DIR };
+#else
     AssetBrowserPanel m_AssetBrowser;
+#endif
 
     GameEngine::Scene m_Scene;
     GameEngine::Object* m_Square = nullptr;

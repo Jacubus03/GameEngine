@@ -4,6 +4,9 @@ add_executable(Sandbox)
 file(GLOB_RECURSE SANDBOX_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.h"
+
+    # Scripts are compiled with the project and register themselves
+    "${CMAKE_CURRENT_SOURCE_DIR}/Assets/Scripts/*.cpp"
 )
 
 target_sources(Sandbox PRIVATE
@@ -18,6 +21,7 @@ target_include_directories(Sandbox
 target_compile_definitions(Sandbox
     PRIVATE
         GAMEENGINE_PLATFORM_WINDOWS
+        SANDBOX_SOURCE_ASSETS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/Assets"
 )
 
 # Import ImGui symbols from GameEngine.dll
