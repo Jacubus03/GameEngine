@@ -409,4 +409,15 @@ namespace GameEngine::MeshFactory
 
 		return ParseOBJ(buffer.str(), normalize);
 	}
+
+	std::optional<MeshData> CreateFromSource(const std::string& source)
+	{
+		if (source == "cube")
+			return CreateCube();
+
+		if (source == "sphere")
+			return CreateUVSphere(32, 16);
+
+		return LoadOBJ(source);
+	}
 }

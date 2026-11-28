@@ -30,6 +30,7 @@
 #include "GameEngine/Scripting/Script.h"
 #include "GameEngine/Scripting/ScriptRegistry.h"
 #include "GameEngine/Scene/Scene.h"
+#include "GameEngine/Scene/SceneSerializer.h"
 #include "GameEngine/Scene/MeshRenderer.h"
 #include "GameEngine/Scene/Object.h"
 #include "GameEngine/Scene/Transform.h"

@@ -29,5 +29,8 @@ namespace GameEngine
 
 		GAMEENGINE_API std::optional<MeshData> LoadOBJ(const std::string& path, bool normalize = true);
 		GAMEENGINE_API std::optional<MeshData> ParseOBJ(const std::string& text, bool normalize = true);
+
+		// source is "cube", "sphere" or a path to an .obj file
+		GAMEENGINE_API std::optional<MeshData> CreateFromSource(const std::string& source);
 	}
 }

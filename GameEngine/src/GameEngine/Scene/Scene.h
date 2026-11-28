@@ -5,6 +5,13 @@
 
 namespace GameEngine
 {
+    struct SceneLight
+    {
+        glm::vec3 Position{ 2.0f, 3.0f, 3.0f };
+        glm::vec3 Color{ 1.0f, 1.0f, 1.0f };
+        float AmbientStrength = 0.15f;
+    };
+
     class GAMEENGINE_API Scene
     {
     public:
@@ -21,6 +28,7 @@ namespace GameEngine
 
         Object& CreateObject(const std::string& name = "Object");
         void DestroyObject(Object& object);
+        void Clear();
 
         Object* FindObject(const Transform* transform) const;
 
@@ -31,6 +39,9 @@ namespace GameEngine
         {
             return m_Objects;
         }
+
+    public:
+        SceneLight light;
 
     private:
         std::vector<std::unique_ptr<Object>> m_Objects;

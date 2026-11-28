@@ -51,8 +51,10 @@ void Sandbox3D::OnAttach()
     m_Square->transform.SetPosition({ 0.0f, -0.3f, -1.0f });
     m_Square->transform.SetRotation({ 0.0f, 0.0f, 45.0f });
     m_Square->transform.SetScale({ 1.0f, 1.0f, 1.0f });
+    m_Square->tag = "Square";
 
     m_Triangle = &m_Scene.CreateObject("Triangle");
+    m_Triangle->tag = "Triangle";
 
     // Triangle
     m_TriangleVA.reset(GameEngine::VertexArray::Create());
@@ -128,18 +130,11 @@ void Sandbox3D::OnAttach()
     blinnPhongShader->SetInt("u_Texture", 0);
 
     // Meshes
-    AddMeshObject("Cube", GameEngine::MeshFactory::CreateCube(), { -1.5f, 0.0f, 0.0f });
-    AddMeshObject("Sphere", GameEngine::MeshFactory::CreateUVSphere(32, 16), { 1.5f, 0.0f, 0.0f });
+    AddMeshObject("Cube", "cube", { -1.5f, 0.0f, 0.0f });
+    AddMeshObject("Sphere", "sphere", { 1.5f, 0.0f, 0.0f });
 
-    if (auto model = GameEngine::MeshFactory::LoadOBJ("Assets/Models/torus.obj"))
-    {
-        GameEngine::Object* torus = AddMeshObject("Torus", *model, { 0.0f, 1.0f, -0.5f });
+    if (GameEngine::Object* torus = AddMeshObject("Torus", "Assets/Models/torus.obj", { 0.0f, 1.0f, -0.5f }))
         torus->transform.SetRotation({ 60.0f, 30.0f, 0.0f });
-    }
-    else
-    {
-        GE_LOG_ERROR("Could not load Assets/Models/torus.obj");
-    }
 
 }
 
@@ -150,6 +145,13 @@ void Sandbox3D::OnDetach()
 
 void Sandbox3D::OnUpdate(GameEngine::Timestep deltaTime)
 {
+    // Scene is replaced here, not while the panels are drawn
+    if (!m_PendingSceneLoad.empty())
+    {
+        LoadScene(m_PendingSceneLoad);
+        m_PendingSceneLoad.clear();
+    }
+
     // Resize
     const GameEngine::FramebufferSpecification specification = m_Framebuffer->GetSpecification();
 
@@ -195,10 +197,10 @@ void Sandbox3D::OnUpdate(GameEngine::Timestep deltaTime)
 
     if (m_MeshView == 2)
     {
-        meshShader->SetFloat3("u_LightPosition", m_LightPosition);
-        meshShader->SetFloat3("u_LightColor", m_LightColor);
+        meshShader->SetFloat3("u_LightPosition", m_Scene.light.Position);
+        meshShader->SetFloat3("u_LightColor", m_Scene.light.Color);
         meshShader->SetFloat3("u_CameraPosition", m_Camera->transform.GetGlobalPosition());
-        meshShader->SetFloat("u_AmbientStrength", m_AmbientStrength);
+        meshShader->SetFloat("u_AmbientStrength", m_Scene.light.AmbientStrength);
     }
     else
     {
@@ -241,11 +243,19 @@ void Sandbox3D::OnImGuiRender()
     m_AssetBrowser.OnImGuiRender();
 }
 
-GameEngine::Object* Sandbox3D::AddMeshObject(const std::string& name, const GameEngine::MeshData& data, const glm::vec3& position)
+GameEngine::Object* Sandbox3D::AddMeshObject(const std::string& name, const std::string& source, const glm::vec3& position)
 {
+    auto data = GameEngine::MeshFactory::CreateFromSource(source);
+
+    if (!data)
+    {
+        GE_LOG_ERROR("Could not load mesh {0}", source);
+        return nullptr;
+    }
+
     GameEngine::Object& object = m_Scene.CreateObject(name);
     object.transform.SetPosition(position);
-    object.meshRenderer = GameEngine::MeshRenderer{ GameEngine::Mesh::Create(data), GameEngine::Material{} };
+    object.meshRenderer = GameEngine::MeshRenderer{ GameEngine::Mesh::Create(*data), GameEngine::Material{}, source };
 
     return &object;
 }
@@ -259,19 +269,16 @@ void Sandbox3D::HandleAssetDrop(const std::string& path)
 
     if (extension == ".obj")
     {
-        auto model = GameEngine::MeshFactory::LoadOBJ(path);
-
-        if (!model)
-        {
-            GE_LOG_ERROR("Could not load model {0}", path);
-            return;
-        }
-
         // In front of the camera
         const glm::vec3 position = m_Camera->transform.GetGlobalPosition()
             + m_Camera->transform.GetGlobalRotationQuaternion() * glm::vec3(0.0f, 0.0f, -3.0f);
 
-        m_SelectedObject = AddMeshObject(file.stem().string(), *model, position);
+        if (GameEngine::Object* object = AddMeshObject(file.stem().string(), path, position))
+            m_SelectedObject = object;
+    }
+    else if (extension == ".scene")
+    {
+        m_PendingSceneLoad = path;
     }
     else if (extension == ".cpp")
     {
@@ -297,7 +304,7 @@ void Sandbox3D::HandleAssetDrop(const std::string& path)
         GameEngine::Material& material = m_SelectedObject->meshRenderer->material;
 
         material.Texture = GameEngine::Texture2D::Create(path);
-        material.TexturePath = file.filename().string();
+        material.TexturePath = path;
     }
 }
 
@@ -320,9 +327,11 @@ void Sandbox3D::DrawLightPanel()
 {
     ImGui::Begin("Light");
 
-    ImGui::DragFloat3("Position", &m_LightPosition.x, 0.05f);
-    ImGui::ColorEdit3("Color", &m_LightColor.x);
-    ImGui::SliderFloat("Ambient", &m_AmbientStrength, 0.0f, 1.0f);
+    GameEngine::SceneLight& light = m_Scene.light;
+
+    ImGui::DragFloat3("Position", &light.Position.x, 0.05f);
+    ImGui::ColorEdit3("Color", &light.Color.x);
+    ImGui::SliderFloat("Ambient", &light.AmbientStrength, 0.0f, 1.0f);
 
     ImGui::End();
 }
@@ -337,7 +346,7 @@ void Sandbox3D::DrawMaterialInspector(GameEngine::Material& material)
     ImGui::SliderFloat("Shininess", &material.Shininess, 1.0f, 256.0f);
     ImGui::Checkbox("Use texture", &material.UseTexture);
 
-    const std::string label = material.Texture ? material.TexturePath : "Default (drop a texture here)";
+    const std::string label = material.Texture ? std::filesystem::path(material.TexturePath).filename().string() : "Default (drop a texture here)";
     ImGui::Button(label.c_str(), ImVec2(-1.0f, 0.0f));
 
     AcceptAssetDrop();
@@ -446,6 +455,59 @@ void Sandbox3D::BeginDockspace()
         ImVec2(0.0f, 0.0f),
         ImGuiDockNodeFlags_None
     );
+
+    if (ImGui::BeginMenuBar())
+    {
+        if (ImGui::BeginMenu("File"))
+        {
+            if (ImGui::MenuItem("Save Scene"))
+                SaveScene(m_ScenePath);
+
+            if (ImGui::MenuItem("Save Scene As..."))
+                m_OpenSaveAs = true;
+
+            if (ImGui::BeginMenu("Open Scene"))
+            {
+                std::error_code error;
+
+                for (const auto& entry : std::filesystem::directory_iterator("Assets/Scenes", error))
+                {
+                    if (entry.path().extension() == ".scene" && ImGui::MenuItem(entry.path().stem().string().c_str()))
+                        m_PendingSceneLoad = entry.path().generic_string();
+                }
+
+                ImGui::EndMenu();
+            }
+
+            ImGui::EndMenu();
+        }
+
+        ImGui::EndMenuBar();
+    }
+
+    if (m_OpenSaveAs)
+    {
+        ImGui::OpenPopup("Save Scene As");
+        m_OpenSaveAs = false;
+    }
+
+    if (ImGui::BeginPopupModal("Save Scene As", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+    {
+        ImGui::InputText("Name", m_SaveAsName, sizeof(m_SaveAsName));
+
+        if (ImGui::Button("Save") && m_SaveAsName[0] != '\0')
+        {
+            SaveScene(std::string("Assets/Scenes/") + m_SaveAsName + ".scene");
+            ImGui::CloseCurrentPopup();
+        }
+
+        ImGui::SameLine();
+
+        if (ImGui::Button("Cancel"))
+            ImGui::CloseCurrentPopup();
+
+        ImGui::EndPopup();
+    }
 
     ImGui::End();
 }
@@ -694,6 +756,63 @@ void Sandbox3D::DrawScriptsSection(GameEngine::Object& object)
 
         ImGui::EndPopup();
     }
+}
+
+void Sandbox3D::SaveScene(const std::string& path)
+{
+    if (!GameEngine::SceneSerializer::SaveToFile(m_Scene, path, m_Camera.get()))
+    {
+        GE_LOG_ERROR("Could not save scene {0}", path);
+        return;
+    }
+
+    m_ScenePath = path;
+
+#ifdef SANDBOX_SOURCE_ASSETS_DIR
+    // Copy to the project too
+    const std::filesystem::path target = std::filesystem::path(SANDBOX_SOURCE_ASSETS_DIR) / std::filesystem::path(path).lexically_relative("Assets");
+
+    std::error_code error;
+    std::filesystem::create_directories(target.parent_path(), error);
+    std::filesystem::copy_file(path, target, std::filesystem::copy_options::overwrite_existing, error);
+#endif
+
+    GE_LOG_INFO("Scene saved: {0}", path);
+}
+
+void Sandbox3D::LoadScene(const std::string& path)
+{
+    if (!GameEngine::SceneSerializer::LoadFromFile(m_Scene, path, m_Camera.get()))
+    {
+        GE_LOG_ERROR("Could not load scene {0}", path);
+        return;
+    }
+
+    m_ScenePath = path;
+    OnSceneReplaced();
+
+    GE_LOG_INFO("Scene loaded: {0}", path);
+}
+
+// Pointers to the old objects are not valid anymore
+void Sandbox3D::OnSceneReplaced()
+{
+    m_SelectedObject = nullptr;
+    m_PendingActions.clear();
+
+    m_Square = FindObjectByTag("Square");
+    m_Triangle = FindObjectByTag("Triangle");
+}
+
+GameEngine::Object* Sandbox3D::FindObjectByTag(const std::string& tag)
+{
+    for (const auto& object : m_Scene.GetObjects())
+    {
+        if (object->tag == tag)
+            return object.get();
+    }
+
+    return nullptr;
 }
 
 void Sandbox3D::OnEvent(GameEngine::Event& event)

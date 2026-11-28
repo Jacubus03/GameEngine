@@ -3,6 +3,7 @@
 #include "GameEngine/Core/Core.h"
 #include "GameEngine/Core/Timestep.h"
 
+#include <iosfwd>
 #include <string>
 
 namespace GameEngine
@@ -21,6 +22,10 @@ namespace GameEngine
 
 		// Script parameters in the Inspector
 		virtual void OnImGuiRender() {}
+
+		// Saved with the scene, read the values in the same order as they were written
+		virtual void OnSerialize(std::ostream& out) const {}
+		virtual void OnDeserialize(std::istream& in) {}
 
 		Object& GetOwner() { return *m_Owner; }
 		const std::string& GetName() const { return m_Name; }

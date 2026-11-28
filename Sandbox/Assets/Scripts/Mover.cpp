@@ -2,6 +2,8 @@
 
 #include <algorithm>
 #include <imgui.h>
+#include <istream>
+#include <ostream>
 
 // Moves the object back and forth
 class Mover : public GameEngine::Script
@@ -31,6 +33,16 @@ public:
         ImGui::DragFloat3("Direction", &Direction.x, 0.05f);
         ImGui::DragFloat("Speed", &Speed, 0.05f, 0.0f, 100.0f);
         ImGui::DragFloat("Distance", &Distance, 0.05f, 0.1f, 100.0f);
+    }
+
+    void OnSerialize(std::ostream& out) const override
+    {
+        out << Direction.x << ' ' << Direction.y << ' ' << Direction.z << ' ' << Speed << ' ' << Distance;
+    }
+
+    void OnDeserialize(std::istream& in) override
+    {
+        in >> Direction.x >> Direction.y >> Direction.z >> Speed >> Distance;
     }
 
 public:

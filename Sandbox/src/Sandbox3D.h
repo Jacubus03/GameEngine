@@ -32,7 +32,12 @@ private:
     void DrawMaterialInspector(GameEngine::Material& material);
     void DrawScriptsSection(GameEngine::Object& object);
 
-    GameEngine::Object* AddMeshObject(const std::string& name, const GameEngine::MeshData& data, const glm::vec3& position);
+    void SaveScene(const std::string& path);
+    void LoadScene(const std::string& path);
+    void OnSceneReplaced();
+    GameEngine::Object* FindObjectByTag(const std::string& tag);
+
+    GameEngine::Object* AddMeshObject(const std::string& name, const std::string& source, const glm::vec3& position);
 
     void DrawObjectNode(GameEngine::Object& object);
     void DestroyObjectRecursive(GameEngine::Object& object);
@@ -66,10 +71,11 @@ private:
 
     int m_MeshView = 2;
 
-    // Light
-    glm::vec3 m_LightPosition{ 2.0f, 3.0f, 3.0f };
-    glm::vec3 m_LightColor{ 1.0f, 1.0f, 1.0f };
-    float m_AmbientStrength = 0.15f;
+    // Scene file
+    std::string m_ScenePath = "Assets/Scenes/Scene.scene";
+    std::string m_PendingSceneLoad;
+    bool m_OpenSaveAs = false;
+    char m_SaveAsName[128] = "Scene";
 
     // Object currently selected in the Hierarchy panel (nullptr = nothing selected)
     GameEngine::Object* m_SelectedObject = nullptr;

@@ -34,6 +34,9 @@ namespace GameEngine
 
         // Empty when the object has no mesh
         std::optional<MeshRenderer> meshRenderer;
+
+        // Free text to find the object later, for example after loading a scene
+        std::string tag;
     private:
         std::string m_Name;
         std::vector<std::unique_ptr<Script>> m_Scripts;

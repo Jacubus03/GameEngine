@@ -37,6 +37,11 @@ namespace GameEngine
         }
     }
 
+    void Scene::Clear()
+    {
+        m_Objects.clear();
+    }
+
     Object* Scene::FindObject(const Transform* transform) const
     {
         for (const auto& object : m_Objects)
