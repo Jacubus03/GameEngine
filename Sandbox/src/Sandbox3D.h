@@ -3,6 +3,7 @@
 #include <GameEngine.h>
 
 #include "AssetBrowserPanel.h"
+#include "ProjectBuilder.h"
 
 #include <functional>
 #include <string>
@@ -32,6 +33,7 @@ private:
     void DrawMaterialInspector(GameEngine::Material& material);
     void DrawScriptsSection(GameEngine::Object& object);
 
+    void BuildGame();
     void StartPlay();
     void StopPlay();
 
@@ -81,6 +83,12 @@ private:
     PlayRequest m_PlayRequest = PlayRequest::None;
     std::string m_PlaySnapshot;
     int m_PlaySelectedIndex = -1;
+
+    // Build and the built game
+    bool m_PlayerMode = false;
+    glm::vec2 m_PlayerViewport{ 0.0f, 0.0f };
+    std::string m_BuildMessage;
+    bool m_OpenBuildMessage = false;
 
     // Scene file
     std::string m_ScenePath = "Assets/Scenes/Scene.scene";

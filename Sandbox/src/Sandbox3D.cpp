@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cstdio>
 #include <filesystem>
+#include <fstream>
 
 namespace
 {
@@ -136,6 +137,23 @@ void Sandbox3D::OnAttach()
     if (GameEngine::Object* torus = AddMeshObject("Torus", "Assets/Models/torus.obj", { 0.0f, 1.0f, -0.5f }))
         torus->transform.SetRotation({ 60.0f, 30.0f, 0.0f });
 
+    // The built game has startup.txt, it opens the scene and plays it
+    std::ifstream startupFile("startup.txt");
+    std::string startupScene;
+
+    if (startupFile && std::getline(startupFile, startupScene))
+    {
+        while (!startupScene.empty() && (startupScene.back() == '\r' || startupScene.back() == ' '))
+            startupScene.pop_back();
+
+        if (!startupScene.empty())
+        {
+            m_PlayerMode = true;
+            m_Playing = true;
+            m_PendingSceneLoad = startupScene;
+        }
+    }
+
 }
 
 void Sandbox3D::OnDetach()
@@ -169,6 +187,22 @@ void Sandbox3D::OnUpdate(GameEngine::Timestep deltaTime)
         m_Camera->SetViewportSize((uint32_t)m_SceneSize.x, (uint32_t)m_SceneSize.y);
     }
 
+    // The game fills the whole window
+    if (m_PlayerMode)
+    {
+        auto& window = GameEngine::Application::Get().GetWindow();
+        const glm::vec2 size((float)window.GetWidth(), (float)window.GetHeight());
+
+        if (size.x > 0.0f && size.y > 0.0f && size != m_PlayerViewport)
+        {
+            m_PlayerViewport = size;
+            m_Camera->SetViewportSize(window.GetWidth(), window.GetHeight());
+        }
+
+        m_SceneFocused = true;
+        GameEngine::Application::Get().GetImGuiLayer().BlockEvents(false);
+    }
+
     // Update
     if (m_SceneFocused)
         m_CameraController->OnUpdate(deltaTime);
@@ -178,7 +212,8 @@ void Sandbox3D::OnUpdate(GameEngine::Timestep deltaTime)
         m_Scene.OnUpdate(deltaTime);
 
     // Render
-    m_Framebuffer->Bind();
+    if (!m_PlayerMode)
+        m_Framebuffer->Bind();
 
     GameEngine::RenderCommand::SetClearColor(
         glm::vec4(0.1f, 0.1f, 0.1f, 1.0f)
@@ -238,11 +273,15 @@ void Sandbox3D::OnUpdate(GameEngine::Timestep deltaTime)
 
     GameEngine::Renderer::EndScene();
 
-    m_Framebuffer->Unbind();
+    if (!m_PlayerMode)
+        m_Framebuffer->Unbind();
 }
 
 void Sandbox3D::OnImGuiRender()
 {
+    if (m_PlayerMode)
+        return;
+
     BeginDockspace();
     DrawScenePanel();
     DrawHierarchyPanel();
@@ -491,6 +530,11 @@ void Sandbox3D::BeginDockspace()
                 ImGui::EndMenu();
             }
 
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("Build Game", nullptr, false, !m_Playing))
+                BuildGame();
+
             ImGui::EndMenu();
         }
 
@@ -507,6 +551,22 @@ void Sandbox3D::BeginDockspace()
     {
         ImGui::OpenPopup("Save Scene As");
         m_OpenSaveAs = false;
+    }
+
+    if (m_OpenBuildMessage)
+    {
+        ImGui::OpenPopup("Build");
+        m_OpenBuildMessage = false;
+    }
+
+    if (ImGui::BeginPopupModal("Build", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+    {
+        ImGui::TextUnformatted(m_BuildMessage.c_str());
+
+        if (ImGui::Button("OK"))
+            ImGui::CloseCurrentPopup();
+
+        ImGui::EndPopup();
     }
 
     if (ImGui::BeginPopupModal("Save Scene As", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
@@ -774,6 +834,24 @@ void Sandbox3D::DrawScriptsSection(GameEngine::Object& object)
 
         ImGui::EndPopup();
     }
+}
+
+void Sandbox3D::BuildGame()
+{
+#ifdef SANDBOX_EXECUTABLE_NAME
+    const std::string executable = SANDBOX_EXECUTABLE_NAME;
+#else
+    const std::string executable = "Sandbox.exe";
+#endif
+
+    const std::string scene = GameEngine::SceneSerializer::Serialize(m_Scene, m_Camera.get());
+
+    if (ProjectBuilder::Build("Build", std::filesystem::current_path(), executable, scene, m_BuildMessage))
+        GE_LOG_INFO("{0}", m_BuildMessage);
+    else
+        GE_LOG_ERROR("Build failed: {0}", m_BuildMessage);
+
+    m_OpenBuildMessage = true;
 }
 
 void Sandbox3D::StartPlay()

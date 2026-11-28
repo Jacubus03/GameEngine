@@ -22,6 +22,7 @@ target_compile_definitions(Sandbox
     PRIVATE
         GAMEENGINE_PLATFORM_WINDOWS
         SANDBOX_SOURCE_ASSETS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/Assets"
+        SANDBOX_EXECUTABLE_NAME="$<TARGET_FILE_NAME:Sandbox>"
 )
 
 # Import ImGui symbols from GameEngine.dll
