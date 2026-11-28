@@ -32,6 +32,9 @@ private:
     void DrawMaterialInspector(GameEngine::Material& material);
     void DrawScriptsSection(GameEngine::Object& object);
 
+    void StartPlay();
+    void StopPlay();
+
     void SaveScene(const std::string& path);
     void LoadScene(const std::string& path);
     void OnSceneReplaced();
@@ -70,6 +73,14 @@ private:
     GameEngine::Object* m_Triangle = nullptr;
 
     int m_MeshView = 2;
+
+    // Play mode, the scene is saved when it starts and restored when it stops
+    enum class PlayRequest { None, Start, Stop };
+
+    bool m_Playing = false;
+    PlayRequest m_PlayRequest = PlayRequest::None;
+    std::string m_PlaySnapshot;
+    int m_PlaySelectedIndex = -1;
 
     // Scene file
     std::string m_ScenePath = "Assets/Scenes/Scene.scene";

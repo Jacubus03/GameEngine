@@ -152,6 +152,13 @@ void Sandbox3D::OnUpdate(GameEngine::Timestep deltaTime)
         m_PendingSceneLoad.clear();
     }
 
+    if (m_PlayRequest == PlayRequest::Start && !m_Playing)
+        StartPlay();
+    else if (m_PlayRequest == PlayRequest::Stop && m_Playing)
+        StopPlay();
+
+    m_PlayRequest = PlayRequest::None;
+
     // Resize
     const GameEngine::FramebufferSpecification specification = m_Framebuffer->GetSpecification();
 
@@ -166,7 +173,9 @@ void Sandbox3D::OnUpdate(GameEngine::Timestep deltaTime)
     if (m_SceneFocused)
         m_CameraController->OnUpdate(deltaTime);
 
-    m_Scene.OnUpdate(deltaTime);
+    // Scripts run only in play mode
+    if (m_Playing)
+        m_Scene.OnUpdate(deltaTime);
 
     // Render
     m_Framebuffer->Bind();
@@ -278,7 +287,10 @@ void Sandbox3D::HandleAssetDrop(const std::string& path)
     }
     else if (extension == ".scene")
     {
-        m_PendingSceneLoad = path;
+        if (m_Playing)
+            GE_LOG_WARN("Stop the play mode to open a scene");
+        else
+            m_PendingSceneLoad = path;
     }
     else if (extension == ".cpp")
     {
@@ -460,13 +472,13 @@ void Sandbox3D::BeginDockspace()
     {
         if (ImGui::BeginMenu("File"))
         {
-            if (ImGui::MenuItem("Save Scene"))
+            if (ImGui::MenuItem("Save Scene", nullptr, false, !m_Playing))
                 SaveScene(m_ScenePath);
 
-            if (ImGui::MenuItem("Save Scene As..."))
+            if (ImGui::MenuItem("Save Scene As...", nullptr, false, !m_Playing))
                 m_OpenSaveAs = true;
 
-            if (ImGui::BeginMenu("Open Scene"))
+            if (ImGui::BeginMenu("Open Scene", !m_Playing))
             {
                 std::error_code error;
 
@@ -481,6 +493,12 @@ void Sandbox3D::BeginDockspace()
 
             ImGui::EndMenu();
         }
+
+        if (ImGui::MenuItem(m_Playing ? "Stop" : "Play"))
+            m_PlayRequest = m_Playing ? PlayRequest::Stop : PlayRequest::Start;
+
+        if (m_Playing)
+            ImGui::TextDisabled("Playing, changes are discarded after Stop");
 
         ImGui::EndMenuBar();
     }
@@ -756,6 +774,38 @@ void Sandbox3D::DrawScriptsSection(GameEngine::Object& object)
 
         ImGui::EndPopup();
     }
+}
+
+void Sandbox3D::StartPlay()
+{
+    m_PlaySnapshot = GameEngine::SceneSerializer::Serialize(m_Scene, m_Camera.get());
+
+    m_PlaySelectedIndex = -1;
+    const auto& objects = m_Scene.GetObjects();
+
+    for (size_t i = 0; i < objects.size(); i++)
+    {
+        if (objects[i].get() == m_SelectedObject)
+            m_PlaySelectedIndex = (int)i;
+    }
+
+    m_Playing = true;
+}
+
+void Sandbox3D::StopPlay()
+{
+    m_Playing = false;
+
+    if (!GameEngine::SceneSerializer::Deserialize(m_Scene, m_PlaySnapshot, m_Camera.get()))
+    {
+        GE_LOG_ERROR("Could not restore the scene after play mode");
+        return;
+    }
+
+    OnSceneReplaced();
+
+    if (m_PlaySelectedIndex >= 0 && m_PlaySelectedIndex < (int)m_Scene.GetObjects().size())
+        m_SelectedObject = m_Scene.GetObjects()[m_PlaySelectedIndex].get();
 }
 
 void Sandbox3D::SaveScene(const std::string& path)
